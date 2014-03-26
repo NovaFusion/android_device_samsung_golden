@@ -1,0 +1,190 @@
+From 63a4a158761f14f6f6853deef2e22637fd233c67 Mon Sep 17 00:00:00 2001
+From: Marcin Chojnacki <marcinch7@gmail.com>
+Date: Sun, 23 Mar 2014 13:19:54 +0100
+Subject: [PATCH] ste: virtual flattenable
+
+---
+ include/utils/Flattenable.h | 31 +++++++------------------------
+ libutils/Android.mk         |  1 +
+ libutils/Flattenable.cpp    | 24 ++++++++++++++++++++++++
+ 3 files changed, 32 insertions(+), 24 deletions(-)
+ create mode 100644 libutils/Flattenable.cpp
+
+diff --git a/include/utils/Flattenable.h b/include/utils/Flattenable.h
+index 882a8b2..6d0fdaf 100644
+--- a/include/utils/Flattenable.h
++++ b/include/utils/Flattenable.h
+@@ -79,21 +79,20 @@ class FlattenableUtils {
+  * Flattenable objects must implement this protocol.
+  */
+ 
+-template <typename T>
+ class Flattenable {
+ public:
+     // size in bytes of the flattened object
+-    inline size_t getFlattenedSize() const;
++    virtual size_t getFlattenedSize() const = 0;
+ 
+     // number of file descriptors to flatten
+-    inline size_t getFdCount() const;
++    virtual size_t getFdCount() const = 0;
+ 
+     // flattens the object into buffer.
+     // size should be at least of getFlattenedSize()
+     // file descriptors are written in the fds[] array but ownership is
+     // not transfered (ie: they must be dupped by the caller of
+     // flatten() if needed).
+-    inline status_t flatten(void*& buffer, size_t& size, int*& fds, size_t& count) const;
++    virtual status_t flatten(void*& buffer, size_t& size, int*& fds, size_t& count) const = 0;
+ 
+     // unflattens the object from buffer.
+     // size should be equal to the value of getFlattenedSize() when the
+@@ -102,27 +101,11 @@ class Flattenable {
+     // don't need to be dupped(). ie: the caller of unflatten doesn't
+     // keep ownership. If a fd is not retained by unflatten() it must be
+     // explicitly closed.
+-    inline status_t unflatten(void const*& buffer, size_t& size, int const*& fds, size_t& count);
+-};
++    virtual status_t unflatten(void const*& buffer, size_t& size, int const*& fds, size_t& count) = 0;
+ 
+-template<typename T>
+-inline size_t Flattenable<T>::getFlattenedSize() const {
+-    return static_cast<T const*>(this)->T::getFlattenedSize();
+-}
+-template<typename T>
+-inline size_t Flattenable<T>::getFdCount() const {
+-    return static_cast<T const*>(this)->T::getFdCount();
+-}
+-template<typename T>
+-inline status_t Flattenable<T>::flatten(
+-        void*& buffer, size_t& size, int*& fds, size_t& count) const {
+-    return static_cast<T const*>(this)->T::flatten(buffer, size, fds, count);
+-}
+-template<typename T>
+-inline status_t Flattenable<T>::unflatten(
+-        void const*& buffer, size_t& size, int const*& fds, size_t& count) {
+-    return static_cast<T*>(this)->T::unflatten(buffer, size, fds, count);
+-}
++protected:
++    virtual ~Flattenable() = 0;
++};
+ 
+ /*
+  * LightFlattenable is a protocol allowing object to serialize themselves out
+diff --git a/libutils/Android.mk b/libutils/Android.mk
+index 720443e..d48991d 100644
+--- a/libutils/Android.mk
++++ b/libutils/Android.mk
+@@ -22,6 +22,7 @@ commonSources:= \
+ 	BlobCache.cpp \
+ 	CallStack.cpp \
+ 	FileMap.cpp \
++	Flattenable.cpp \
+ 	JenkinsHash.cpp \
+ 	LinearAllocator.cpp \
+ 	LinearTransform.cpp \
+diff --git a/libutils/Flattenable.cpp b/libutils/Flattenable.cpp
+new file mode 100644
+index 0000000..1f2ffaa
+--- /dev/null
++++ b/libutils/Flattenable.cpp
+@@ -0,0 +1,24 @@
++/*
++ * Copyright (C) 2006 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include <utils/Flattenable.h>
++
++namespace android {
++
++Flattenable::~Flattenable() {
++}
++
++}; // namespace android
+-- 
+1.8.5.5
+
+From 58077a50fe5eb66f6f130ed88b14929fd43e349f Mon Sep 17 00:00:00 2001
+From: Marcin Chojnacki <marcinch7@gmail.com>
+Date: Mon, 24 Mar 2014 17:03:14 +0100
+Subject: [PATCH] samsung: allow lpm from command line
+
+---
+ init/init.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/init/init.c b/init/init.c
+index 16e4515..20c7f0a 100644
+--- a/init/init.c
++++ b/init/init.c
+@@ -79,6 +79,13 @@
+ #define BOARD_CHARGING_CMDLINE_VALUE "true"
+ #endif
+ 
++#ifdef STE_SAMSUNG_HARDWARE
++#ifndef BOARD_LPM_BOOT_ARGUMENT_NAME
++#define BOARD_LPM_BOOT_ARGUMENT_NAME "lpm_boot"
++#define BOARD_LPM_BOOT_ARGUMENT_VALUE "1"
++#endif
++#endif
++
+ static char console[32];
+ static char bootmode[32];
+ static char hardware[32];
+@@ -108,6 +115,10 @@ void notify_service_state(const char *name, const char *state)
+ 
+ static unsigned emmc_boot = 0;
+ 
++#ifdef STE_SAMSUNG_HARDWARE
++static unsigned lpm_bootmode = 0;
++#endif
++
+ static unsigned charging_mode = 0;
+ 
+ static const char *expand_environment(const char *val)
+@@ -815,6 +826,12 @@ static void import_kernel_nv(char *name, int for_emulator)
+             emmc_boot = 1;
+         }
+ #endif
++#ifdef STE_SAMSUNG_HARDWARE
++	} else if (!strcmp(name,BOARD_LPM_BOOT_ARGUMENT_NAME)) {
++        if (!strcmp(value,BOARD_LPM_BOOT_ARGUMENT_VALUE)) {
++            lpm_bootmode = 1;
++        }
++#endif
+     } else if (!strcmp(name,BOARD_CHARGING_CMDLINE_NAME)) {
+         strlcpy(battchg_pause, value, sizeof(battchg_pause));
+     } else if (!strncmp(name, "androidboot.", 12) && name_len > 12) {
+@@ -1066,6 +1083,9 @@ int audit_callback(void *data, security_class_t cls, char *buf, size_t len)
+ 
+ static int charging_mode_booting(void)
+ {
++#ifdef STE_SAMSUNG_HARDWARE
++    return lpm_bootmode;
++#else
+ #ifndef BOARD_CHARGING_MODE_BOOTING_LPM
+     return 0;
+ #else
+@@ -1081,6 +1101,7 @@ static int charging_mode_booting(void)
+     close(f);
+     return ('1' == cmb);
+ #endif
++#endif
+ }
+ 
+ static void selinux_initialize(void)
+-- 
+1.8.5.5
+
