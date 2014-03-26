@@ -1,0 +1,28 @@
+# RIL
+rild.libpath=/system/lib/libsec-ril.so
+rild.libargs=-d /dev/ttyS0
+ro.telephony.ril_class=GoldenRIL
+# Wi-Fi
+wifi.interface=wlan0
+wifi.supplicant_scan_interval=150
+# Display
+ro.sf.lcd_density=240
+ro.opengles.version=131072
+ro.zygote.disable_gl_preload=1
+ro.bq.gpu_to_cpu_unsupported=1
+debug.hwui.render_dirty_regions=false
+debug.sf.hw=1
+# USB
+persist.sys.usb.config=mtp,adb
+persist.service.adb.enable=1
+# STE
+ste.nmf.autoidle=1
+ste.dbus.bus.address=unix:path=/dev/socket/dbus_ste
+ste.video.dec.mpeg4.in.size=8192
+ste.video.enc.out.buffercnt=5
+ste.video.dec.recycle.delay=1
+ste.special_fast_dormancy=false
+ste.cam.front.orientation=270
+ste.cam.back.orientation=90
+ste.cam.ext.cfg.path.secondary=/system/usr/share/camera/config_file/aptina_mt9v113.dat
+ste.omx.ctx=0

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<device name="Android">
+    <item name="none">0</item>
+    <item name="screen.on">71</item>
+    <!-- Bluetooth data transfer -->
+    <item name="bluetooth.active">17</item>
+    <!-- Bluetooth on & connectable, but not connectedA -->
+    <item name="bluetooth.on">0.3</item>
+    <item name="screen.full">380</item>
+    <item name="wifi.on">0.3</item>
+    <!-- WIFI data transfer -->
+    <item name="wifi.active">96</item>
+    <!-- WIFI network scanning -->
+    <item name="wifi.scan">70</item>
+    <item name="dsp.audio">44</item>
+    <item name="dsp.video">280</item>
+    <item name="radio.active">250</item>
+     <!-- Cellular radio scanning for signal -->
+    <item name="radio.scanning">82</item>
+    <item name="gps.on">1</item>
+    <!-- Current consumed by the radio at different signal strengths, when paging -->
+    <array name="radio.on">
+        <value>3.4</value>
+        <value>3.4</value>
+    </array>
+    <!-- Different CPU speeds as reported in
+       /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state -->
+    <array name="cpu.speeds">
+        <value>10000000</value> <!-- 1 Ghz CPU speed -->
+        <value>800000</value> <!-- 800 MHz CPU speed -->
+        <value>400000</value> <!-- 400 MHz CPU speed -->
+        <value>200000</value> <!-- 200 MHz CPU speed -->
+    </array>
+    <!-- Current when CPU is idle -->
+    <item name="cpu.idle">4</item>
+    <!-- Current at each CPU speed, as per 'cpu.speeds' -->
+    <array name="cpu.active">
+        <value>408</value>
+        <value>249</value>
+        <value>110</value>
+        <value>55</value>
+    </array>
+    <!-- This is the battery capacity in mAh (measured at nominal voltage) -->
+    <item name="battery.capacity">1500</item>
+</device>
