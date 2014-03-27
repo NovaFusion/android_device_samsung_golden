@@ -1,37 +1,33 @@
 #!/bin/sh
+echo -e "\e[0;32mNovaFusion patcher for CyanogenMod 11\nStarting..."
 
-CURRENTDIR=$(pwd)
-PATCHERPATH=$(readlink -f "$0")
-PATCHERDIR=$(dirname "$PATCHERPATH")
-
-echo "NovaFusion patcher for CyanogenMod 11"
+PATCHERDIR=$(dirname $(readlink -f "$0"))
 cd $PATCHERDIR
+cd ../../../..
+BASEDIR=$(pwd)
 
-echo "Copying NATIVE patch...";
-cp native.patch ../../../../frameworks/native
-echo "Copying AV patch...";
-cp av.patch ../../../../frameworks/av
-echo "Copying CORE patch...";
-cp core.patch ../../../../system/core
-echo "Copying TELEPHONY patch...";
-cp telephony.patch ../../../../packages/services/Telephony
+echo -e "\n\e[0;31mPatching RECOVERY:\e[0;34m"
+cd $BASEDIR/bootable/recovery
+patch -p1 -N -i$PATCHERDIR/recovery.patch
 
-cd ../../../../frameworks/native
-echo "Patching NATIVE...";
-patch -p1 < native.patch
-rm native.patch
-cd ../av
-echo "Patching AV...";
-patch -p1 < av.patch
-rm av.patch
-cd ../../system/core
-echo "Patching CORE...";
-patch -p1 < core.patch
-rm core.patch
-cd ../../packages/services/Telephony
-echo "Patching TELEPHONY...";
-patch -p1 < telephony.patch
-rm telephony.patch
+echo -e "\n\e[0;31mPatching AV:\e[0;34m"
+cd $BASEDIR/frameworks/av
+patch -p1 -N -i$PATCHERDIR/av.patch
 
-echo "Everything done (probably)... Have a nice day!"
-cd $CURRENTDIR
+echo -e "\n\e[0;31mPatching BASE:\e[0;34m"
+cd $BASEDIR/frameworks/base
+patch -p1 -N -i$PATCHERDIR/base.patch
+
+echo -e "\n\e[0;31mPatching NATIVE:\e[0;34m"
+cd $BASEDIR/frameworks/native
+patch -p1 -N -i$PATCHERDIR/native.patch
+
+echo -e "\n\e[0;31mPatching CORE:\e[0;34m"
+cd $BASEDIR/system/core
+patch -p1 -N -i$PATCHERDIR/core.patch
+
+echo -e "\n\e[0;31mPatching TELEPHONY:\e[0;34m"
+cd $BASEDIR/packages/services/Telephony
+patch -p1 -N -i$PATCHERDIR/telephony.patch
+
+echo -e "\n\e[0;32mEverything (probably) patched, have a nice day!\e[0m"
