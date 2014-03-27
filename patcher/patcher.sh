@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 echo -e "\e[0;32mNovaFusion patcher for CyanogenMod 11\nStarting..."
 
 PATCHERDIR=$(dirname $(readlink -f "$0"))
