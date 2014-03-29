@@ -1,6 +1,6 @@
 /*
  * Copyright (C) ST-Ericsson AB 2009 - All rights reserved
- * Copyright (C) Marcin Chojnacki & MaclawStudio 2013
+ * Copyright (C) 2014 NovaFusion http://novafusion.pl
  * Reproduction and Communication of this document is strictly prohibited
  * unless specifically authorized in writing by ST-Ericsson
  *
