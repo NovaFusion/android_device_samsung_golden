@@ -11,3 +11,4 @@
 /dev/block/mmcblk0p20               /boot               emmc    defaults                                              defaults
 /dev/block/mmcblk0p21               /recovery           emmc    defaults                                              defaults
 /devices/sdi0/mmc_host/mmc1/mmc1    /storage/sdcard1    auto    defaults                                              voldmanaged=sdcard1:auto
+/devices/platform/msm_hsusb_host.0  /storage/usbdisk0   auto    defaults                                              voldmanaged=usbdisk0:auto
