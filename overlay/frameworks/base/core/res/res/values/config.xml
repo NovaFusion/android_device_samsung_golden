@@ -76,7 +76,6 @@
     <!-- Boolean indicating whether the wifi chipset has background scan support -->
     <bool translatable="false" name="config_wifi_background_scan_support">true</bool>
 
-
     <!-- This string array should be overridden by the device to present a list of radio
          attributes.  This is used by the connectivity manager to decide which networks can coexist
          based on the hardware -->
@@ -87,22 +86,19 @@
         <item>0,1</item>
         <item>7,1</item>
     </string-array>
-    
+
     <!-- Hardware 'face' keys present on the device, stored as a bit field.
-    This integer should equal the sum of the corresponding value for each
-    of the following keys present:
-    1 - Home
-    2 - Back
-    4 - Menu
-    8 - Assistant (search)
-    16 - App switch
-    For example, a device with Home, Back and Menu keys would set this
-    config to 7. -->
+         This integer should equal the sum of the corresponding value for each
+         of the following keys present:
+             1 - Home
+             2 - Back
+             4 - Menu
+             8 - Assistant (search)
+            16 - App switch
+         For example, a device with Home, Back and Menu keys would set this
+         config to 7. -->
     <integer name="config_deviceHardwareKeys">7</integer>
 
-    <!-- Boolean indicating whether we want button brightness support -->
-    <bool name="config_button_brightness_support">true</bool>
-    
     <!-- If this is true, the screen will come on when you unplug usb/power/whatever. -->
     <bool name="config_unplugTurnsOnScreen">true</bool>
 
