@@ -18,26 +18,26 @@
 #include "template.h"
 
 bool sensor_base::safe_start(turba_fifo<sensors_event_t *> *queue) {
-	if(!enabled_) {
-		turba_fifo<sensors_event_t *> *last=queue_;
-		queue_=queue;
-		if(start()) {
-			enabled_=true;
-			return true;
-		}
-		queue_=last;
-		return false;
-	}
-	return true;
+    if(!enabled_) {
+        turba_fifo<sensors_event_t *> *last=queue_;
+        queue_=queue;
+        if(start()) {
+            enabled_=true;
+            return true;
+        }
+        queue_=last;
+        return false;
+    }
+    return true;
 }
 
 bool sensor_base::safe_stop() {
-	if(enabled_) {
-		if(stop()) {
-			enabled_=false;
-			return true;
-		}
-		return false;
-	}
-	return true;
+    if(enabled_) {
+        if(stop()) {
+            enabled_=false;
+            return true;
+        }
+        return false;
+    }
+    return true;
 }

@@ -28,11 +28,10 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := \
     sensors.cpp \
     template.cpp \
-	utils.cpp \
-	mpu6050.cpp \
-	mpu6050a.cpp \
-	mpu6050g.cpp \
-	alps.cpp \
+    turbafifo.cpp \
+    utils.cpp \
+    mpu6050.cpp \
+    alps.cpp \
     gp2a.cpp
 
 include $(BUILD_SHARED_LIBRARY)

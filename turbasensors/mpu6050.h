@@ -18,14 +18,25 @@
 #ifndef MPU6050_H
 #define MPU6050_H
 
-#include <hardware/sensors.h>
-#include "turbafifo.h"
+#include "template.h"
 
-extern turba_fifo<sensors_event_t *> *mpu_queue;
-extern int mpu_acc_handle;
-extern int mpu_gyro_handle;
+#define ACCELEROMETER false
+#define GYROSCOPE true
 
-void start_polling(bool gyro);
-void stop_polling(bool gyro);
+class mpu6050:public sensor_base {
+SENSOR_IMPLEMENTATION
+
+public:
+    mpu6050(bool device);
+
+private:
+    static void *poller_helper(void *ctx);
+    void poller();
+
+    static int acc_handle;
+    static int gyro_handle;
+    static int fd;
+    bool gyro;
+};
 
 #endif

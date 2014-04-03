@@ -24,26 +24,10 @@
 class turba_locker
 {
 public:
-    turba_locker() {
-		sem_init(&semaphore,0,0);
-		//locked=false;
-	}
-	
-    virtual ~turba_locker() {
-		sem_destroy(&semaphore);
-	}
-	
-    void lock() {
-		locked=true;
-		sem_wait(&semaphore);
-	}
-
-    void unlock() {
-		if(locked) {
-			sem_post(&semaphore);
-			locked=false;
-		}
-	}
+    turba_locker();
+    virtual ~turba_locker();
+    void lock();
+    void unlock();
 
 private:
     sem_t semaphore;
@@ -61,40 +45,44 @@ template<class T>
 class turba_fifo
 {
 public:
-    turba_fifo(){
-		front=NULL;
-		back=NULL;
-		pthread_mutex_init(&lock,NULL);
-	}
-	
+    turba_fifo() {
+        front=NULL;
+        back=NULL;
+        pthread_mutex_init(&lock,NULL);
+    }
+    
     virtual ~turba_fifo() {
-		pthread_mutex_destroy(&lock);
-	}
-	
+        pthread_mutex_destroy(&lock);
+    }
+    
     void push(T value) {
-		pthread_mutex_lock(&lock);
-		turba_node<T> *temp=new turba_node<T>();
-		temp->value=value;
-		if (front==NULL) {
-			front=temp;
-			back=temp;
-		}
-		else {
-			back->next=temp;
-			back=temp;
-		}
-		locker.unlock();
-		pthread_mutex_unlock(&lock);
-	}
-	
-    T pop(){
-		if(front==NULL) locker.lock();
-		pthread_mutex_lock(&lock);
-		T ret=front->value;
-		front=front->next;
-		pthread_mutex_unlock(&lock);
-		return ret;
-	}
+        pthread_mutex_lock(&lock);
+        turba_node<T> *temp=new turba_node<T>();
+        temp->value=value;
+        if (front==NULL) {
+            front=temp;
+            back=temp;
+        }
+        else {
+            back->next=temp;
+            back=temp;
+        }
+        locker.unlock();
+        pthread_mutex_unlock(&lock);
+    }
+    
+    T pop() {
+        if(front==NULL) locker.lock();
+        pthread_mutex_lock(&lock);
+        T ret=front->value;
+        front=front->next;
+        pthread_mutex_unlock(&lock);
+        return ret;
+    }
+
+    bool empty() {
+        return front==NULL;
+    }
  
 private:
     turba_node<T> *front;

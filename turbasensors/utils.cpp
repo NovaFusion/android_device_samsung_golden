@@ -17,35 +17,36 @@
 
 #include "utils.h"
 
+#include <ctime>
+
 #include <unistd.h>
 #include <fcntl.h>
-#include <time.h>
 
 int64_t get_timestamp() {
-	timespec t;
-	t.tv_sec=t.tv_nsec=0;
-	clock_gettime(CLOCK_MONOTONIC,&t);
-	return int64_t(t.tv_sec)*1000000000LL+t.tv_nsec;
+    timespec t;
+    t.tv_sec=t.tv_nsec=0;
+    clock_gettime(CLOCK_MONOTONIC,&t);
+    return int64_t(t.tv_sec)*1000000000LL+t.tv_nsec;
 }
 
 int64_t timeval_to_nano(timeval const &t) {
-	return t.tv_sec*1000000000LL+t.tv_usec*1000;
+    return t.tv_sec*1000000000LL+t.tv_usec*1000;
 }
 
 bool sysfs_write(const char *path,const char *value) {
-	int fd=open(path,O_WRONLY);
-	if(fd!=-1) {
-		write(fd,value,strlen(value));
-		close(fd);
-		return true;
-	}
-	return false;
+    int fd=open(path,O_WRONLY);
+    if(fd!=-1) {
+        write(fd,value,strlen(value));
+        close(fd);
+        return true;
+    }
+    return false;
 }
 
 sensors_event_t *get_new_event(int64_t timestamp) {
-	sensors_event_t *event=new sensors_event_t();
-	event->version=sizeof(sensors_event_t);
-	memset(event->data,0,sizeof(event->data));
-	event->timestamp=timestamp;
-	return event;
+    sensors_event_t *event=new sensors_event_t();
+    event->version=sizeof(sensors_event_t);
+    memset(event->data,0,sizeof(event->data));
+    event->timestamp=timestamp;
+    return event;
 }

@@ -35,58 +35,58 @@ float gp2a::get_power() { return 0.75f; }
 int32_t gp2a::get_delay() { return 0; }
 
 bool gp2a::set_delay(int64_t ns) {
-	return true;
+    return true;
 }
 
 void gp2a::send_event(int64_t timestamp,float distance) {
-	sensors_event_t *sensors_event=get_new_event(timestamp);
-	sensors_event->sensor=handle_;
-	sensors_event->type=get_type();
-	sensors_event->distance=distance;
-	queue_->push(sensors_event);
+    sensors_event_t *sensors_event=get_new_event(timestamp);
+    sensors_event->sensor=handle_;
+    sensors_event->type=get_type();
+    sensors_event->distance=distance;
+    queue_->push(sensors_event);
 }
 
 void gp2a::poller() {
-	pollfd rfd;
-	rfd.fd=fd;
-	rfd.events=POLLIN;
-	input_event event;
-	send_event(get_timestamp(),5.0f);
-	while(true) {
-		if(poll(&rfd,1,500)==1) {
-			if(rfd.revents&POLLIN) {
-				if(read(fd,&event,sizeof(struct input_event))==sizeof(input_event)) {
-					if(event.type==3&&event.code==25)
-						send_event(timeval_to_nano(event.time),event.value*5.0f);
-				}
-				else break;
-			}
-			else break;
-		}
-	}
+    pollfd rfd;
+    rfd.fd=fd;
+    rfd.events=POLLIN;
+    input_event event;
+    send_event(get_timestamp(),5.0f);
+    while(true) {
+        if(poll(&rfd,1,500)==1) {
+            if(rfd.revents&POLLIN) {
+                if(read(fd,&event,sizeof(struct input_event))==sizeof(input_event)) {
+                    if(event.type==3&&event.code==25)
+                        send_event(timeval_to_nano(event.time),event.value*5.0f);
+                }
+                else break;
+            }
+            else break;
+        }
+    }
 }
 
 void *gp2a::poller_helper(void *ctx) {
-	((gp2a *)ctx)->poller();
-	return NULL;
+    ((gp2a *)ctx)->poller();
+    return NULL;
 }
 
 bool gp2a::start() {
-	fd=open("/dev/input/event6",O_RDONLY);
-	if(fd!=-1) {
-		if(!sysfs_write(ENABLE_PATH,"1")) {
-			close(fd);
-			return false;
-		}
-		pthread_t t1;
-		pthread_create(&t1,NULL,&gp2a::poller_helper,this);
-		return true;
-	}
-	return false;
+    fd=open("/dev/input/event6",O_RDONLY);
+    if(fd!=-1) {
+        if(!sysfs_write(ENABLE_PATH,"1")) {
+            close(fd);
+            return false;
+        }
+        pthread_t t1;
+        pthread_create(&t1,NULL,&gp2a::poller_helper,this);
+        return true;
+    }
+    return false;
 }
 
 bool gp2a::stop() {
-	sysfs_write(ENABLE_PATH,"0");
-	close(fd);
-	return true;
+    sysfs_write(ENABLE_PATH,"0");
+    close(fd);
+    return true;
 }

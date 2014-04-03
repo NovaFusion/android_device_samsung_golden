@@ -24,38 +24,38 @@
 
 #define SENSOR_IMPLEMENTATION \
 public: \
-	const char *get_name(); \
-	const char *get_vendor(); \
-	int get_type(); \
-	float get_range(); \
-	float get_resolution(); \
-	float get_power(); \
-	int32_t get_delay(); \
-	bool set_delay(int64_t ns); \
+    const char *get_name(); \
+    const char *get_vendor(); \
+    int get_type(); \
+    float get_range(); \
+    float get_resolution(); \
+    float get_power(); \
+    int32_t get_delay(); \
+    bool set_delay(int64_t ns); \
 private: \
-	bool start(); \
-	bool stop();
+    bool start(); \
+    bool stop();
 
 class sensor_base {
 public:
-	virtual ~sensor_base() { }
-	virtual const char *get_name()=0;
-	virtual const char *get_vendor()=0;
-	virtual int get_type()=0;
-	virtual float get_range()=0;
-	virtual float get_resolution()=0;
-	virtual float get_power()=0;
-	virtual int32_t get_delay()=0;
-	virtual bool set_delay(int64_t ns)=0;
-	bool safe_start(turba_fifo<sensors_event_t *> *queue);
-	bool safe_stop();
-	turba_fifo<sensors_event_t *> *queue_;
-	int handle_;
+    virtual ~sensor_base() { }
+    virtual const char *get_name()=0;
+    virtual const char *get_vendor()=0;
+    virtual int get_type()=0;
+    virtual float get_range()=0;
+    virtual float get_resolution()=0;
+    virtual float get_power()=0;
+    virtual int32_t get_delay()=0;
+    virtual bool set_delay(int64_t ns)=0;
+    bool safe_start(turba_fifo<sensors_event_t *> *queue);
+    bool safe_stop();
+    turba_fifo<sensors_event_t *> *queue_;
+    int handle_;
 
 private:
-	virtual bool start()=0;
-	virtual bool stop()=0;
-	bool enabled_;
+    virtual bool start()=0;
+    virtual bool stop()=0;
+    bool enabled_;
 };
 
 #endif

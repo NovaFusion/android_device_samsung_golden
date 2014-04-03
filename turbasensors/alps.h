@@ -23,10 +23,11 @@
 class alps:public sensor_base {
 SENSOR_IMPLEMENTATION
 
-public:
-	static void *poller_helper(void *ctx);
-	void poller();
-	int fd;
+private:
+    static void *poller_helper(void *ctx);
+    void poller();
+
+    int fd;
 };
 
 #endif

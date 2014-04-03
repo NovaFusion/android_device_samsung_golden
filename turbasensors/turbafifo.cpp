@@ -15,13 +15,25 @@
  * limitations under the License.
  */
 
-#ifndef MPU6050A_H
-#define MPU6050A_H
+#include "turbafifo.h"
 
-#include "template.h"
+turba_locker::turba_locker() {
+    sem_init(&semaphore,0,0);
+    locked=false;
+}
 
-class mpu6050a:public sensor_base {
-SENSOR_IMPLEMENTATION
-};
+turba_locker::~turba_locker() {
+    sem_destroy(&semaphore);
+}
 
-#endif
+void turba_locker::lock() {
+    locked=true;
+    sem_wait(&semaphore);
+}
+
+void turba_locker::unlock() {
+    if(locked) {
+        sem_post(&semaphore);
+        locked=false;
+    }
+}

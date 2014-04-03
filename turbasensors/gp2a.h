@@ -23,11 +23,12 @@
 class gp2a:public sensor_base {
 SENSOR_IMPLEMENTATION
 
-public:
-	void send_event(int64_t timestamp,float distance);
-	static void *poller_helper(void *ctx);
-	void poller();
-	int fd;
+private:
+    void send_event(int64_t timestamp,float distance);
+    static void *poller_helper(void *ctx);
+    void poller();
+
+    int fd;
 };
 
 #endif
