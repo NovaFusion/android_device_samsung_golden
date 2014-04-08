@@ -1,0 +1,48 @@
+From b05175eb944be0e9e9be0f0298e57e2baef3db43 Mon Sep 17 00:00:00 2001
+From: maclaw <maclaw@maclaw.pl>
+Date: Tue, 8 Apr 2014 08:50:59 +0200
+Subject: [PATCH] fix facebook contact sync (chenxiaolong)
+
+---
+ .../providers/contacts/ContactsDatabaseHelper.java     | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/src/com/android/providers/contacts/ContactsDatabaseHelper.java b/src/com/android/providers/contacts/ContactsDatabaseHelper.java
+index 78c9b8a..8e6f20d 100644
+--- a/src/com/android/providers/contacts/ContactsDatabaseHelper.java
++++ b/src/com/android/providers/contacts/ContactsDatabaseHelper.java
+@@ -1034,7 +1034,9 @@ public void onCreate(SQLiteDatabase db) {
+                 RawContacts.SYNC1 + " TEXT, " +
+                 RawContacts.SYNC2 + " TEXT, " +
+                 RawContacts.SYNC3 + " TEXT, " +
+-                RawContacts.SYNC4 + " TEXT " +
++                RawContacts.SYNC4 + " TEXT, " +
++                // Hack to allow Facebook contact sync to work
++                "is_restricted" + " INTEGER " +
+         ");");
+ 
+         db.execSQL("CREATE INDEX raw_contacts_contact_id_index ON " + Tables.RAW_CONTACTS + " (" +
+@@ -3982,6 +3984,20 @@ private void upgradeToVersion702(SQLiteDatabase db) {
+                     });
+         }
+     }
++	
++    private void addIsRestrictedColumn(SQLiteDatabase db) {
++        Cursor c = db.rawQuery("SELECT * FROM raw_contacts LIMIT 0", null);
++
++        if (c.getColumnIndex("is_restricted") != -1) {
++            Log.v(TAG, "is_restricted column already present in database");
++            return;
++        }
++
++        // Add is_restricted column
++        Log.v(TAG, "Adding is_restricted column to database");
++        db.execSQL("ALTER TABLE raw_contacts"
++                + " ADD is_restricted INTEGER;");
++    }
+ 
+     private void upgradeToVersion707(SQLiteDatabase db) {
+         db.execSQL("ALTER TABLE raw_contacts ADD phonebook_label TEXT;");
+-- 
+1.9.1
+

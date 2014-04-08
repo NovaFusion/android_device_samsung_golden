@@ -30,4 +30,8 @@ echo -e "\n\e[0;31mPatching TELEPHONY:\e[0;34m"
 cd $BASEDIR/packages/services/Telephony
 patch -p1 -N -i$PATCHERDIR/telephony.patch
 
+echo -e "\n\e[0;31mPatching CONTACTS:\e[0;34m"
+cd $BASEDIR/packages/providers/ContactsProvider
+patch -p1 -N -i$PATCHERDIR/contacts.patch
+
 echo -e "\n\e[0;32mEverything (probably) patched, have a nice day!\e[0m"
