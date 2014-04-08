@@ -89,6 +89,3 @@ BOARD_RIL_CLASS := ../../../device/samsung/golden/ril/
 TARGET_SPECIFIC_HEADER_PATH := device/samsung/golden/include
 TARGET_RECOVERY_FSTAB := device/samsung/golden/rootfs/fstab.samsunggolden
 RECOVERY_FSTAB_VERSION := 2
-
-# Override healthd HAL
-BOARD_HAL_STATIC_LIBRARIES := libhealthd.montblanc
