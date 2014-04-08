@@ -113,7 +113,4 @@
     
     <!-- Enable lockscreen translucent decor -->
     <bool name="config_enableLockScreenTranslucentDecor">true</bool>
-
-    <!-- Our phone doesn't support Screenrecording, so we have to disable it -->
-    <bool name="config_enableScreenrecordChord">false</bool>
 </resources>
