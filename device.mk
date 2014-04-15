@@ -703,8 +703,8 @@ PRODUCT_COPY_FILES += \
     device/samsung/golden/prebuilt/media/chargingwarning.qmg:system/media/chargingwarning.qmg
 
 #init.d scripts
-#PRODUCT_COPY_FILES += \
-#    device/samsung/golden/prebuilt/etc/init.d/98netflix:system/etc/init.d/98netflix
+PRODUCT_COPY_FILES += \
+    $(COMMON_PATH)/configs/98netflix:system/etc/init.d/98netflix
 
 # Dalvik config
 $(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
