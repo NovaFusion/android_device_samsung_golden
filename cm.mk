@@ -25,7 +25,7 @@ TARGET_SCREEN_WIDTH := 480
 $(call inherit-product, vendor/cm/config/common_full_phone.mk)
 
 # Inherit device configuration
-$(call inherit-product, device/samsung/golden/full_golden.mk)
+$(call inherit-product, device/samsung/golden/golden.mk)
 
 # Device specific
 PRODUCT_NAME := cm_golden

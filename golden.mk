@@ -22,7 +22,7 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
 # Device identifier
 PRODUCT_DEVICE := golden
-PRODUCT_NAME := full_golden
+PRODUCT_NAME := golden
 PRODUCT_BRAND := samsung
 PRODUCT_MODEL := GT-I8190
 PRODUCT_MANUFACTURER := samsung
