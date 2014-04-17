@@ -705,7 +705,7 @@ PRODUCT_COPY_FILES += \
 
 #init.d scripts
 PRODUCT_COPY_FILES += \
-    $(COMMON_PATH)/configs/98netflix:system/etc/init.d/98netflix
+    device/samsung/golden/prebuilt/etc/init.d/98netflix:system/etc/init.d/98netflix
 
 # Dalvik config
 $(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
