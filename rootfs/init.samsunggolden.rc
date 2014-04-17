@@ -45,7 +45,7 @@ on init
     symlink /storage/usbdisk0 /mnt/usbdisk0
 
     export LD_LIBRARY_PATH /vendor/lib:/system/lib:/system/lib/ste_omxcomponents
-    export OMX_STE_ENS_COMPONENTS_DIR /system/lib/ste_omxcomponents/
+    export OMX_STE_ENS_COMPONENTS_DIR /system/lib/ste_omxcomponents
     export OMX_BELLAGIO_LOADER_REGISTRY /system/etc/omxloaders
 
     mkdir /modemfs 0771 system system
