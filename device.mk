@@ -136,6 +136,7 @@ PRODUCT_COPY_FILES += \
 # RIL
 PRODUCT_COPY_FILES += \
     device/samsung/golden/prebuilt/lib/libsec-ril.so:system/lib/libsec-ril.so \
+    device/samsung/golden/prebuilt/lib/libsecril-client.so:system/lib/libsecril-client.so \
     device/samsung/golden/prebuilt/lib/libril.so:system/lib/libril.so
 
 # Wi-Fi
