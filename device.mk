@@ -169,7 +169,7 @@ PRODUCT_COPY_FILES += \
 
 # OMX (TODO: clean it as much as possible)
 PRODUCT_COPY_FILES += \
-    device/samsung/golden/prebuilt/omxloaders:system/omxloaders \
+    device/samsung/golden/prebuilt/etc/omxloaders:system/etc/omxloaders \
     device/samsung/golden/prebuilt/lib/libnmftimer.so:system/lib/libnmftimer.so \
     device/samsung/golden/prebuilt/lib/libstagefrighthw.so:system/lib/libstagefrighthw.so \
     device/samsung/golden/prebuilt/lib/libste_ens_image_tuningdatabase.so:system/lib/libste_ens_image_tuningdatabase.so \
