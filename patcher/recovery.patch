@@ -1,8 +1,9 @@
-From 771f2c2dac97345ec64702947d877ba6487d6382 Mon Sep 17 00:00:00 2001
-From: maclaw <maclaw@maclaw.pl>
-Date: Thu, 27 Mar 2014 11:07:45 +0100
-Subject: [PATCH] allow to install from any recovery
+From 708621787ae76b0d6d8927d270a16647034c425d Mon Sep 17 00:00:00 2001
+From: Marcin Chojnacki <marcinch7@gmail.com>
+Date: Thu, 17 Apr 2014 20:06:14 +0200
+Subject: [PATCH] novafusion: pre-kitkat recovery fix
 
+Change-Id: I941ca2aaaf666d32cf99121deee3d0c4f59a4cef
 ---
  updater/install.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -21,5 +22,5 @@ index 7ba8c75..4865d8e 100644
                  printf("ParsePermArgs: invalid capabilities \"%s\"\n", args[i + 1]);
                  bad++;
 -- 
-1.8.5.5
+1.8.5.3
 

@@ -1,8 +1,9 @@
-From 6e18ab650a9bc6f4d16df7160569a6d45415e9ec Mon Sep 17 00:00:00 2001
+From 6a450e682a254ce478fb8e83ca3b8752eecef248 Mon Sep 17 00:00:00 2001
 From: Marcin Chojnacki <marcinch7@gmail.com>
-Date: Sun, 23 Mar 2014 18:36:22 +0100
-Subject: [PATCH] low incall volume fix (h3llrais3r)
+Date: Thu, 17 Apr 2014 20:04:25 +0200
+Subject: [PATCH] novafusion: reset audio stream
 
+Change-Id: I2a9097a259b7b60bef8023fdff75f90b55da483c
 ---
  src/com/android/phone/AudioRouter.java |  8 ++++++++
  src/com/android/phone/PhoneUtils.java  | 32 ++++++++++++++++++++++++++++++++
@@ -12,7 +13,7 @@ diff --git a/src/com/android/phone/AudioRouter.java b/src/com/android/phone/Audi
 index 3c8e9d3..4e911cd 100644
 --- a/src/com/android/phone/AudioRouter.java
 +++ b/src/com/android/phone/AudioRouter.java
-@@ -180,6 +180,10 @@ public void setSpeaker(boolean on) {
+@@ -180,6 +180,10 @@ import java.util.List;
      public void onMuteChange(boolean muted) {
          logD("onMuteChange: " + muted);
          notifyListeners();
@@ -23,7 +24,7 @@ index 3c8e9d3..4e911cd 100644
      }
  
      /**
-@@ -350,6 +354,10 @@ private void updateAudioModeTo(int mode) {
+@@ -350,6 +354,10 @@ import java.util.List;
          if (doNotify) {
              notifyListeners();
          }
@@ -38,7 +39,7 @@ diff --git a/src/com/android/phone/PhoneUtils.java b/src/com/android/phone/Phone
 index 1477a2a..d48202c 100644
 --- a/src/com/android/phone/PhoneUtils.java
 +++ b/src/com/android/phone/PhoneUtils.java
-@@ -2195,6 +2195,38 @@ static void setMute(boolean muted) {
+@@ -2195,6 +2195,38 @@ public class PhoneUtils {
          }
      }
  
@@ -78,5 +79,5 @@ index 1477a2a..d48202c 100644
          for (Connection cn : cm.getActiveFgCall().getConnections()) {
              if (PhoneNumberUtils.isLocalEmergencyNumber(cn.getAddress(),
 -- 
-1.8.5.5
+1.8.5.3
 
