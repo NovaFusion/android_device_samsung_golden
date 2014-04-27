@@ -1,20 +1,22 @@
-From 63a4a158761f14f6f6853deef2e22637fd233c67 Mon Sep 17 00:00:00 2001
+From 708b938cb48a2695919dc6383f7192c66d4d3f94 Mon Sep 17 00:00:00 2001
 From: Marcin Chojnacki <marcinch7@gmail.com>
-Date: Sun, 23 Mar 2014 13:19:54 +0100
-Subject: [PATCH] ste: virtual flattenable
+Date: Thu, 17 Apr 2014 20:02:25 +0200
+Subject: [PATCH] novafusion: st-ericsson core patch
 
+Change-Id: Iaa36cffd979fef0d632ce16110526110df7a2c79
 ---
  include/utils/Flattenable.h | 31 +++++++------------------------
+ init/init.c                 | 21 +++++++++++++++++++++
  libutils/Android.mk         |  1 +
  libutils/Flattenable.cpp    | 24 ++++++++++++++++++++++++
- 3 files changed, 32 insertions(+), 24 deletions(-)
+ 4 files changed, 53 insertions(+), 24 deletions(-)
  create mode 100644 libutils/Flattenable.cpp
 
 diff --git a/include/utils/Flattenable.h b/include/utils/Flattenable.h
 index 882a8b2..6d0fdaf 100644
 --- a/include/utils/Flattenable.h
 +++ b/include/utils/Flattenable.h
-@@ -79,21 +79,20 @@ class FlattenableUtils {
+@@ -79,21 +79,20 @@ public:
   * Flattenable objects must implement this protocol.
   */
  
@@ -39,7 +41,7 @@ index 882a8b2..6d0fdaf 100644
  
      // unflattens the object from buffer.
      // size should be equal to the value of getFlattenedSize() when the
-@@ -102,27 +101,11 @@ class Flattenable {
+@@ -102,27 +101,11 @@ public:
      // don't need to be dupped(). ie: the caller of unflatten doesn't
      // keep ownership. If a fd is not retained by unflatten() it must be
      // explicitly closed.
@@ -71,6 +73,66 @@ index 882a8b2..6d0fdaf 100644
  
  /*
   * LightFlattenable is a protocol allowing object to serialize themselves out
+diff --git a/init/init.c b/init/init.c
+index 1cb9194..4a4d281 100644
+--- a/init/init.c
++++ b/init/init.c
+@@ -79,6 +79,13 @@ static int   bootchart_count;
+ #define BOARD_CHARGING_CMDLINE_VALUE "true"
+ #endif
+ 
++#ifdef STE_SAMSUNG_HARDWARE
++#ifndef BOARD_LPM_BOOT_ARGUMENT_NAME
++#define BOARD_LPM_BOOT_ARGUMENT_NAME "lpm_boot"
++#define BOARD_LPM_BOOT_ARGUMENT_VALUE "1"
++#endif
++#endif
++
+ static char console[32];
+ static char bootmode[32];
+ static char hardware[32];
+@@ -108,6 +115,10 @@ static const char *ENV[32];
+ 
+ static unsigned emmc_boot = 0;
+ 
++#ifdef STE_SAMSUNG_HARDWARE
++static unsigned lpm_bootmode = 0;
++#endif
++
+ static unsigned charging_mode = 0;
+ 
+ static const char *expand_environment(const char *val)
+@@ -815,6 +826,12 @@ static void import_kernel_nv(char *name, int for_emulator)
+             emmc_boot = 1;
+         }
+ #endif
++#ifdef STE_SAMSUNG_HARDWARE
++	} else if (!strcmp(name,BOARD_LPM_BOOT_ARGUMENT_NAME)) {
++        if (!strcmp(value,BOARD_LPM_BOOT_ARGUMENT_VALUE)) {
++            lpm_bootmode = 1;
++        }
++#endif
+     } else if (!strcmp(name,BOARD_CHARGING_CMDLINE_NAME)) {
+         strlcpy(battchg_pause, value, sizeof(battchg_pause));
+     } else if (!strncmp(name, "androidboot.", 12) && name_len > 12) {
+@@ -1062,6 +1079,9 @@ int audit_callback(void *data, security_class_t cls, char *buf, size_t len)
+ 
+ static int charging_mode_booting(void)
+ {
++#ifdef STE_SAMSUNG_HARDWARE
++    return lpm_bootmode;
++#else
+ #ifndef BOARD_CHARGING_MODE_BOOTING_LPM
+     return 0;
+ #else
+@@ -1077,6 +1097,7 @@ static int charging_mode_booting(void)
+     close(f);
+     return ('1' == cmb);
+ #endif
++#endif
+ }
+ 
+ static void selinux_initialize(void)
 diff --git a/libutils/Android.mk b/libutils/Android.mk
 index 720443e..d48991d 100644
 --- a/libutils/Android.mk
@@ -114,77 +176,5 @@ index 0000000..1f2ffaa
 +
 +}; // namespace android
 -- 
-1.8.5.5
-
-From 58077a50fe5eb66f6f130ed88b14929fd43e349f Mon Sep 17 00:00:00 2001
-From: Marcin Chojnacki <marcinch7@gmail.com>
-Date: Mon, 24 Mar 2014 17:03:14 +0100
-Subject: [PATCH] samsung: allow lpm from command line
-
----
- init/init.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
-
-diff --git a/init/init.c b/init/init.c
-index 16e4515..20c7f0a 100644
---- a/init/init.c
-+++ b/init/init.c
-@@ -79,6 +79,13 @@
- #define BOARD_CHARGING_CMDLINE_VALUE "true"
- #endif
- 
-+#ifdef STE_SAMSUNG_HARDWARE
-+#ifndef BOARD_LPM_BOOT_ARGUMENT_NAME
-+#define BOARD_LPM_BOOT_ARGUMENT_NAME "lpm_boot"
-+#define BOARD_LPM_BOOT_ARGUMENT_VALUE "1"
-+#endif
-+#endif
-+
- static char console[32];
- static char bootmode[32];
- static char hardware[32];
-@@ -108,6 +115,10 @@ void notify_service_state(const char *name, const char *state)
- 
- static unsigned emmc_boot = 0;
- 
-+#ifdef STE_SAMSUNG_HARDWARE
-+static unsigned lpm_bootmode = 0;
-+#endif
-+
- static unsigned charging_mode = 0;
- 
- static const char *expand_environment(const char *val)
-@@ -815,6 +826,12 @@ static void import_kernel_nv(char *name, int for_emulator)
-             emmc_boot = 1;
-         }
- #endif
-+#ifdef STE_SAMSUNG_HARDWARE
-+	} else if (!strcmp(name,BOARD_LPM_BOOT_ARGUMENT_NAME)) {
-+        if (!strcmp(value,BOARD_LPM_BOOT_ARGUMENT_VALUE)) {
-+            lpm_bootmode = 1;
-+        }
-+#endif
-     } else if (!strcmp(name,BOARD_CHARGING_CMDLINE_NAME)) {
-         strlcpy(battchg_pause, value, sizeof(battchg_pause));
-     } else if (!strncmp(name, "androidboot.", 12) && name_len > 12) {
-@@ -1066,6 +1083,9 @@ int audit_callback(void *data, security_class_t cls, char *buf, size_t len)
- 
- static int charging_mode_booting(void)
- {
-+#ifdef STE_SAMSUNG_HARDWARE
-+    return lpm_bootmode;
-+#else
- #ifndef BOARD_CHARGING_MODE_BOOTING_LPM
-     return 0;
- #else
-@@ -1081,6 +1101,7 @@ static int charging_mode_booting(void)
-     close(f);
-     return ('1' == cmb);
- #endif
-+#endif
- }
- 
- static void selinux_initialize(void)
--- 
-1.8.5.5
+1.8.5.3
 

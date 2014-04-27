@@ -20,7 +20,7 @@ git fetch http://review.cyanogenmod.org/CyanogenMod/android_frameworks_base refs
 
 echo -e "\n\e[0;31mPatching NATIVE:\e[0;34m"
 cd $BASEDIR/frameworks/native
-git fetch http://review.cyanogenmod.org/CyanogenMod/android_frameworks_native refs/changes/73/62673/1 && git cherry-pick FETCH_HEAD
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_frameworks_native refs/changes/52/63052/1 && git cherry-pick FETCH_HEAD
 
 echo -e "\n\e[0;31mPatching CORE:\e[0;34m"
 cd $BASEDIR/system/core

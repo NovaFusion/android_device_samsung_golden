@@ -1,8 +1,9 @@
-From 27c681d393c960996154ddcc1b88a21122c251b7 Mon Sep 17 00:00:00 2001
+From bd7a9af949c74be4ba82224f748ab2dedc465688 Mon Sep 17 00:00:00 2001
 From: Marcin Chojnacki <marcinch7@gmail.com>
-Date: Sun, 23 Mar 2014 13:11:26 +0100
-Subject: [PATCH] ste: multimedia patch
+Date: Thu, 17 Apr 2014 19:48:35 +0200
+Subject: [PATCH] novafusion: st-ericsson av patch
 
+Change-Id: Ie5375b1cdbe7bd3c8e33edb42cbaa4059766f4a9
 ---
  camera/CameraParameters.cpp                        |  21 +++
  include/camera/CameraParameters.h                  |  21 +++
@@ -20,7 +21,7 @@ diff --git a/camera/CameraParameters.cpp b/camera/CameraParameters.cpp
 index 7fa3d06..3ef7d89 100644
 --- a/camera/CameraParameters.cpp
 +++ b/camera/CameraParameters.cpp
-@@ -328,6 +328,13 @@
+@@ -328,6 +328,13 @@ const char CameraParameters::SCENE_MODE_FIREWORKS[] = "fireworks";
  const char CameraParameters::SCENE_MODE_SPORTS[] = "sports";
  const char CameraParameters::SCENE_MODE_PARTY[] = "party";
  const char CameraParameters::SCENE_MODE_CANDLELIGHT[] = "candlelight";
@@ -34,7 +35,7 @@ index 7fa3d06..3ef7d89 100644
  #ifdef QCOM_HARDWARE
  #ifdef SAMSUNG_CAMERA_LEGACY
  const char CameraParameters::SCENE_MODE_BACKLIGHT[] = "back-light";
-@@ -354,6 +361,14 @@
+@@ -354,6 +361,14 @@ const char CameraParameters::PIXEL_FORMAT_YUV420SP[] = "yuv420sp";
  #ifdef QCOM_HARDWARE
  const char CameraParameters::PIXEL_FORMAT_YUV420SP_ADRENO[] = "yuv420sp-adreno";
  #endif
@@ -66,7 +67,7 @@ diff --git a/include/camera/CameraParameters.h b/include/camera/CameraParameters
 index fa3b9aa..defa1e5 100644
 --- a/include/camera/CameraParameters.h
 +++ b/include/camera/CameraParameters.h
-@@ -838,6 +838,13 @@ class CameraParameters
+@@ -838,6 +838,13 @@ public:
      static const char SCENE_MODE_SPORTS[];
      static const char SCENE_MODE_PARTY[];
      static const char SCENE_MODE_CANDLELIGHT[];
@@ -80,7 +81,7 @@ index fa3b9aa..defa1e5 100644
  #ifdef QCOM_HARDWARE
      static const char SCENE_MODE_BACKLIGHT[];
      static const char SCENE_MODE_FLOWERS[];
-@@ -862,6 +869,14 @@ class CameraParameters
+@@ -862,6 +869,14 @@ public:
  #ifdef QCOM_HARDWARE
      static const char PIXEL_FORMAT_YUV420SP_ADRENO[]; // ADRENO
  #endif
@@ -95,7 +96,7 @@ index fa3b9aa..defa1e5 100644
      static const char PIXEL_FORMAT_YUV422I[]; // YUY2
      static const char PIXEL_FORMAT_YUV420P[]; // YV12
      static const char PIXEL_FORMAT_RGB565[];
-@@ -941,6 +956,12 @@ class CameraParameters
+@@ -941,6 +956,12 @@ public:
      // High-dynamic range mode
      static const char LIGHTFX_HDR[];
  
@@ -112,7 +113,7 @@ diff --git a/include/media/stagefright/ColorConverter.h b/include/media/stagefri
 index 85ba920..014fc7a 100644
 --- a/include/media/stagefright/ColorConverter.h
 +++ b/include/media/stagefright/ColorConverter.h
-@@ -73,6 +73,11 @@ struct ColorConverter {
+@@ -73,6 +73,11 @@ private:
      status_t convertQCOMYUV420SemiPlanar(
              const BitmapParams &src, const BitmapParams &dst);
  
@@ -128,7 +129,7 @@ diff --git a/include/media/stagefright/MediaDefs.h b/include/media/stagefright/M
 index 170e587..169dec6 100644
 --- a/include/media/stagefright/MediaDefs.h
 +++ b/include/media/stagefright/MediaDefs.h
-@@ -27,8 +27,14 @@
+@@ -27,8 +27,14 @@ extern const char *MEDIA_MIMETYPE_VIDEO_VP9;
  extern const char *MEDIA_MIMETYPE_VIDEO_AVC;
  extern const char *MEDIA_MIMETYPE_VIDEO_MPEG4;
  extern const char *MEDIA_MIMETYPE_VIDEO_H263;
@@ -169,7 +170,7 @@ index 8ad8e8c..c9de0c6 100644
  
      struct CodecNameAndQuirks {
 diff --git a/media/libstagefright/ACodec.cpp b/media/libstagefright/ACodec.cpp
-index a8124fe..a7dd6bd 100755
+index eb638a2..f27ac7c 100755
 --- a/media/libstagefright/ACodec.cpp
 +++ b/media/libstagefright/ACodec.cpp
 @@ -600,8 +600,12 @@ status_t ACodec::configureOutputBuffersFromNativeWindow(
@@ -229,7 +230,7 @@ diff --git a/media/libstagefright/MediaDefs.cpp b/media/libstagefright/MediaDefs
 index b5d4e44..2eb5c9e 100644
 --- a/media/libstagefright/MediaDefs.cpp
 +++ b/media/libstagefright/MediaDefs.cpp
-@@ -25,8 +25,14 @@
+@@ -25,8 +25,14 @@ const char *MEDIA_MIMETYPE_VIDEO_VP9 = "video/x-vnd.on2.vp9";
  const char *MEDIA_MIMETYPE_VIDEO_AVC = "video/avc";
  const char *MEDIA_MIMETYPE_VIDEO_MPEG4 = "video/mp4v-es";
  const char *MEDIA_MIMETYPE_VIDEO_H263 = "video/3gpp";
@@ -245,10 +246,10 @@ index b5d4e44..2eb5c9e 100644
  const char *MEDIA_MIMETYPE_AUDIO_AMR_NB = "audio/3gpp";
  const char *MEDIA_MIMETYPE_AUDIO_AMR_WB = "audio/amr-wb";
 diff --git a/media/libstagefright/OMXCodec.cpp b/media/libstagefright/OMXCodec.cpp
-index 2cea323..054701c 100644
+index 28ea42f..5f19a0e 100644
 --- a/media/libstagefright/OMXCodec.cpp
 +++ b/media/libstagefright/OMXCodec.cpp
-@@ -257,6 +257,20 @@ static int CompareSoftwareCodecsFirst(
+@@ -259,6 +259,20 @@ static int CompareSoftwareCodecsFirst(
      return 0;
  }
  
@@ -269,7 +270,7 @@ index 2cea323..054701c 100644
  // static
  void OMXCodec::findMatchingCodecs(
          const char *mime,
-@@ -387,6 +401,12 @@ uint32_t OMXCodec::getComponentQuirks(
+@@ -389,6 +403,12 @@ uint32_t OMXCodec::getComponentQuirks(
        quirks |= kInputBufferSizesAreBogus;
      }
  #endif
@@ -282,7 +283,7 @@ index 2cea323..054701c 100644
  
  #ifdef QCOM_HARDWARE
      quirks |= ExtendedCodec::getComponentQuirks(list,index);
-@@ -972,6 +992,9 @@ static size_t getFrameSize(
+@@ -974,6 +994,9 @@ static size_t getFrameSize(
          case OMX_COLOR_FormatYUV420Planar:
          case OMX_COLOR_FormatYUV420SemiPlanar:
          case OMX_TI_COLOR_FormatYUV420PackedSemiPlanar:
@@ -292,7 +293,7 @@ index 2cea323..054701c 100644
          /*
          * FIXME: For the Opaque color format, the frame size does not
          * need to be (w*h*3)/2. It just needs to
-@@ -1764,6 +1787,10 @@ void OMXCodec::setComponentRole(
+@@ -1766,6 +1789,10 @@ void OMXCodec::setComponentRole(
              "video_decoder.mpeg4", "video_encoder.mpeg4" },
          { MEDIA_MIMETYPE_VIDEO_H263,
              "video_decoder.h263", "video_encoder.h263" },
@@ -303,7 +304,7 @@ index 2cea323..054701c 100644
          { MEDIA_MIMETYPE_VIDEO_VP8,
              "video_decoder.vp8", "video_encoder.vp8" },
          { MEDIA_MIMETYPE_VIDEO_VP9,
-@@ -1856,6 +1883,16 @@ status_t OMXCodec::init() {
+@@ -1858,6 +1885,16 @@ status_t OMXCodec::init() {
      CHECK_EQ((int)mState, (int)LOADED);
  
      status_t err;
@@ -320,7 +321,7 @@ index 2cea323..054701c 100644
      if (!(mQuirks & kRequiresLoadedToIdleAfterAllocation)) {
          err = mOMX->sendCommand(mNode, OMX_CommandStateSet, OMX_StateIdle);
          CHECK_EQ(err, (status_t)OK);
-@@ -1915,7 +1952,12 @@ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
+@@ -1917,7 +1954,12 @@ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
      }
  
      status_t err = OK;
@@ -333,7 +334,7 @@ index 2cea323..054701c 100644
              && portIndex == kPortIndexInput) {
          err = mOMX->storeMetaDataInBuffers(mNode, kPortIndexInput, OMX_TRUE);
          if (err != OK) {
-@@ -2116,7 +2158,11 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
+@@ -2118,7 +2160,11 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
              mNativeWindow.get(),
              def.format.video.nFrameWidth,
              def.format.video.nFrameHeight,
@@ -516,5 +517,5 @@ index 597167f..a85ad72 100644
      static const signed kClipMin = -278;
      static const signed kClipMax = 535;
 -- 
-1.8.5.5
+1.8.5.3
 
