@@ -255,6 +255,11 @@ enum blt_fmt {
      *        V 31:24, U 23:16, Y 15:8, and Alpha 7:0.
      */
     BLT_FMT_32_BIT_VUYA8888 = 0x7F00000E,
+    /**
+     * @brief YV12 is a YVU420P format with alignment requirements
+     * on luma and chroma stride
+     */
+    BLT_FMT_YV12 = 0x7F000010,
 };
 
 
@@ -472,6 +477,10 @@ enum blt_flag {
      * B2R2_BLT_FLAG_GLOBAL_ALPHA_BLEND will control the blend operation.
      */
     BLT_FLAG_BG_BLEND              = 0x20000,
+    /**
+     * @brief Input/output YUV range
+     */
+    BLT_FLAG_FULL_RANGE_YUV = 0x80000,
     /**
      * @brief Use color look-up table for color correction.
      * Pointer to the table must be specified in *clut field of

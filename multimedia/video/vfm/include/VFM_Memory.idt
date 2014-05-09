@@ -1,0 +1,28 @@
+/*
+ * Copyright (C) ST-Ericsson SA 2010. All rights reserved.
+ * This code is ST-Ericsson proprietary and confidential.
+ * Any use of the code for whatever purpose is subject to
+ * specific written permission of ST-Ericsson SA.
+ */
+
+#ifndef VFM_MEMORY_IDT
+#define VFM_MEMORY_IDT
+
+#define VFM_MEM_LAST_IDT 7
+
+/* This structure is very similar to the one defined in VFM_Memory.h */
+typedef struct {
+    /// @brief Current allocated size, per type
+    t_uint32 mCurrentSize[VFM_MEM_LAST_IDT];
+    
+    /// @brief Maximum allocated size, per type
+    t_uint32 mMaxSize[VFM_MEM_LAST_IDT];
+    
+    /// @brief Current number of items, per type
+    t_uint32 mCurrentNbItem[VFM_MEM_LAST_IDT];
+    
+    /// @brief Maximum number of items, per type
+    t_uint32 mMaxNbItem[VFM_MEM_LAST_IDT];
+} VFM_MemoryStatus;
+
+#endif

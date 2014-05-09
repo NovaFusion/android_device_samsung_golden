@@ -29,7 +29,10 @@ PRODUCT_PACKAGES += \
     audio.a2dp.default \
     libomxil-bellagio \
     libblt_hw \
-    lights.montblanc
+    lights.montblanc \
+    copybit.montblanc \
+    hwcomposer.montblanc \
+    gralloc.montblanc
 
 # Misc packages
 PRODUCT_PACKAGES += \
@@ -114,12 +117,6 @@ PRODUCT_COPY_FILES += \
 ##########################################
 ## Displaying/Graphic
 ##########################################
-
-# Display
-PRODUCT_COPY_FILES += \
-    device/samsung/golden/prebuilt/lib/hw/hwcomposer.montblanc.so:system/lib/hw/hwcomposer.montblanc.so \
-    device/samsung/golden/prebuilt/lib/hw/gralloc.montblanc.so:system/lib/hw/gralloc.montblanc.so \
-    device/samsung/golden/prebuilt/lib/hw/copybit.montblanc.so:system/lib/hw/copybit.montblanc.so
 
 # Mali-400
 PRODUCT_COPY_FILES += \

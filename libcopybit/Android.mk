@@ -13,20 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 LOCAL_PATH:= $(call my-dir)
 MULTIMEDIA_PATH := $(LOCAL_PATH)/../multimedia
+# HAL module implemenation, not prelinked and stored in
+# hw/<COPYPIX_HARDWARE_MODULE_ID>.<ro.board.platform>.so
 include $(CLEAR_VARS)
-
+GRALLOC_PATH := $(LOCAL_PATH)/../libgralloc
+LOCAL_C_INCLUDES := $(MULTIMEDIA_PATH)/linux/b2r2lib/include $(GRALLOC_PATH)
 LOCAL_PRELINK_MODULE := false
-
-LOCAL_SRC_FILES := src/blt_b2r2.c
-
-LOCAL_C_INCLUDES += $(MULTIMEDIA_PATH)/linux/b2r2lib/include
-
-LOCAL_SHARED_LIBRARIES := liblog
-
-LOCAL_MODULE := libblt_hw
-
+LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_SHARED_LIBRARIES := liblog libblt_hw libhardware
+LOCAL_SRC_FILES := copybit.c
+LOCAL_MODULE := copybit.montblanc
 LOCAL_MODULE_TAGS := optional
-
 include $(BUILD_SHARED_LIBRARY)

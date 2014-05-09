@@ -1,0 +1,134 @@
+#ifndef __OMXDSPERROR_H_
+#define __OMXDSPERROR_H_
+
+typedef enum {
+    OMX_DSP_ErrorNone = 0,
+
+    /** There were insufficient resources to perform the requested operation */
+    OMX_DSP_ErrorInsufficientResources = 0x1000,
+
+    /** There was an error, but the cause of the error could not be determined */
+    OMX_DSP_ErrorUndefined = 0x1001,
+
+    /** The component name string was not valid */
+    OMX_DSP_ErrorInvalidComponentName = 0x1002,
+
+    /** No component with the specified name string was found */
+    OMX_DSP_ErrorComponentNotFound = 0x1003,
+
+    /** The component specified did not have a "OMX_DSP_ComponentInit" or
+     *  "OMX_DSP_ComponentDeInit entry point */
+    OMX_DSP_ErrorInvalidComponent = 0x1004,
+
+    /** One or more parameters were not valid */
+    OMX_DSP_ErrorBadParameter = 0x1005,
+
+    /** The requested function is not implemented */
+    OMX_DSP_ErrorNotImplemented = 0x1006,
+
+    /** The buffer was emptied before the next buffer was ready */
+    OMX_DSP_ErrorUnderflow = 0x1007,
+
+    /** The buffer was not available when it was needed */
+    OMX_DSP_ErrorOverflow = 0x1008,
+
+    /** The hardware failed to respond as expected */
+    OMX_DSP_ErrorHardware = 0x1009,
+
+    /** The component is in the state OMX_DSP_StateInvalid */
+    OMX_DSP_ErrorInvalidState = 0x100A,
+
+    /** Stream is found to be corrupt */
+    OMX_DSP_ErrorStreamCorrupt = 0x100B,
+
+    /** Ports being connected are not compatible */
+    OMX_DSP_ErrorPortsNotCompatible = 0x100C,
+
+    /** Resources allocated to an idle component have been
+     *  lost resulting in the component returning to the loaded state */
+    OMX_DSP_ErrorResourcesLost = 0x100D,
+
+    /** No more indicies can be enumerated */
+    OMX_DSP_ErrorNoMore = 0x100E,
+
+    /** The component detected a version mismatch */
+    OMX_DSP_ErrorVersionMismatch = 0x100F,
+
+    /** The component is not ready to return data at this time */
+    OMX_DSP_ErrorNotReady = 0x1010,
+
+    /** There was a timeout that occurred */
+    OMX_DSP_ErrorTimeout = 0x1011,
+
+    /** This error occurs when trying to transition into the state you are already in */
+    OMX_DSP_ErrorSameState = 0x1012,
+
+    /** Resources allocated to an executing or paused component have been
+     *  preempted, causing the component to return to the idle state */
+    OMX_DSP_ErrorResourcesPreempted = 0x1013,
+
+    /** A non-supplier port sends this error to the IL client (via the EventHandler callback)
+     *  during the allocation of buffers (on a transition from the LOADED to the IDLE state or
+     *  on a port restart) when it deems that it has waited an unusually long time for the supplier
+     *  to send it an allocated buffer via a UseBuffer call. */
+    OMX_DSP_ErrorPortUnresponsiveDuringAllocation = 0x1014,
+
+    /** A non-supplier port sends this error to the IL client (via the EventHandler callback)
+     *  during the deallocation of buffers (on a transition from the IDLE to LOADED state or
+     *  on a port stop) when it deems that it has waited an unusually long time for the supplier
+     *  to request the deallocation of a buffer header via a FreeBuffer call. */
+    OMX_DSP_ErrorPortUnresponsiveDuringDeallocation = 0x1015,
+
+    /** A supplier port sends this error to the IL client (via the EventHandler callback)
+     *  during the stopping of a port (either on a transition from the IDLE to LOADED
+     *  state or a port stop) when it deems that it has waited an unusually long time for
+     *  the non-supplier to return a buffer via an EmptyThisBuffer or FillThisBuffer call. */
+    OMX_DSP_ErrorPortUnresponsiveDuringStop = 0x1016,
+
+    /** Attempting a state transtion that is not allowed */
+    OMX_DSP_ErrorIncorrectStateTransition = 0x1017,
+
+    /* Attempting a command that is not allowed during the present state. */
+    OMX_DSP_ErrorIncorrectStateOperation = 0x1018,
+
+    /** The values encapsulated in the parameter or config structure are not supported. */
+    OMX_DSP_ErrorUnsupportedSetting = 0x1019,
+
+    /** The parameter or config indicated by the given index is not supported. */
+    OMX_DSP_ErrorUnsupportedIndex = 0x101A,
+
+    /** The port index supplied is incorrect. */
+    OMX_DSP_ErrorBadPortIndex = 0x101B,
+
+    /** The port has lost one or more of its buffers and it thus unpopulated. */
+    OMX_DSP_ErrorPortUnpopulated = 0x101C,
+
+    /** Component suspended due to temporary loss of resources */
+    OMX_DSP_ErrorComponentSuspended = 0x101D,
+
+    /** Component suspended due to an inability to acquire dynamic resources */
+    OMX_DSP_ErrorDynamicResourcesUnavailable = 0x101E,
+
+    /** When the macroblock error reporting is enabled the component returns new error
+     * for every frame that has errors */
+    OMX_DSP_ErrorMbErrorsInFrame = 0x101F,
+
+    /** A component reports this error when it cannot parse or determine the format of an input stream. */
+    OMX_DSP_ErrorFormatNotDetected = 0x1020,
+
+    /** The content open operation failed. */
+    OMX_DSP_ErrorContentPipeOpenFailed = 0x1021,
+
+    /** The content creation operation failed. */
+    OMX_DSP_ErrorContentPipeCreationFailed = 0x1022,
+
+    /** Separate table information is being used */
+    OMX_DSP_ErrorSeperateTablesUsed = 0x1023,
+
+    /** Tunneling is unsupported by the component*/
+    OMX_DSP_ErrorTunnelingUnsupported = 0x1024,
+
+    OMX_DSP_ErrorMax = 0x7FFF
+} OMX_DSP_ERRORTYPE;
+
+#endif // __OMXDSPERROR_H_
