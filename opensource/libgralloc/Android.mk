@@ -16,8 +16,6 @@
 LOCAL_PATH := $(call my-dir)
 MULTIMEDIA_PATH := $(LOCAL_PATH)/../multimedia
 
-# HAL module implemenation, not prelinked and stored in
-# hw/<OVERLAY_HARDWARE_MODULE_ID>.<ro.product.board>.so
 include $(CLEAR_VARS)
 LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
