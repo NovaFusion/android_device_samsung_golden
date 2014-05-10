@@ -1738,8 +1738,8 @@ static int hwcomposer_device_open(const struct hw_module_t *module,
 
 #ifdef ENABLE_HDMI
         ctx->hdmi_settings.hdmid_sockfd = open_hdmid_socket();
-        if (ctx->hdmi_settings.hdmid_sockfd < 0)
-            ALOGE("Failed to open communication channel to hdmid");
+        /*if (ctx->hdmi_settings.hdmid_sockfd < 0)
+            ALOGE("Failed to open communication channel to hdmid");*/
 #endif
 
         *device = &ctx->dev.common;
