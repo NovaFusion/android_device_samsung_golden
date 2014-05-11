@@ -42,18 +42,32 @@ typedef struct framebuffer_device_t {
     const uint32_t  flags;
 
     /* dimensions of the framebuffer in pixels */
+#ifdef STE_HARDWARE
     uint32_t  width;
     uint32_t  height;
+#else
+    const uint32_t  width;
+    const uint32_t  height;
+#endif
 
     /* frambuffer stride in pixels */
+#ifdef STE_HARDWARE
     int       stride;
+#else
+    const int       stride;
+#endif
 
     /* framebuffer pixel format */
     const int       format;
 
     /* resolution of the framebuffer's display panel in pixel per inch*/
+#ifdef STE_HARDWARE
     float     xdpi;
     float     ydpi;
+#else
+    const float     xdpi;
+    const float     ydpi;
+#endif
 
     /* framebuffer's display panel refresh rate in frames per second */
     const float     fps;
@@ -144,6 +158,7 @@ typedef struct framebuffer_device_t {
      */
     int (*enableScreen)(struct framebuffer_device_t* dev, int enable);
 
+#ifdef STE_HARDWARE
     /*
      * Sets the number of degrees ccw the framebuffer shall be rotated before
      * being sent to the display. This call may change the framebuffer's
@@ -162,6 +177,7 @@ typedef struct framebuffer_device_t {
      * e.g. HDMI.
      */
     void (*enableHDMIMirroring)(struct framebuffer_device_t* dev, int enable);
+#endif
 
     void* reserved_proc[6];
 
