@@ -246,6 +246,13 @@ typedef enum OMX_INDEXTYPE {
        private indexes are not guaranteed unique and therefore should
        only be sent to the appropriate component. */
 
+	OMX_IndexParamAudioMp2,                 /**< reference: OMX_AUDIO_PARAM_MP2TYPE */
+    OMX_IndexParamAudioAc3,                 /**< reference: OMX_AUDIO_PARAM_AC3TYPE */
+    OMX_IndexParamAudioApe,                 /**< reference: OMX_AUDIO_PARAM_APETYPE */
+    OMX_IndexParamAudioDts,                 /**< reference: OMX_AUDIO_PARAM_DTSTYPE */
+    OMX_IndexParamVideoFFmpeg,              /**< reference: OMX_VIDEO_PARAM_FFMPEGTYPE */
+    OMX_IndexParamAudioFFmpeg,              /**< reference: OMX_AUDIO_PARAM_FFMPEGTYPE */
+
     OMX_IndexMax = 0x7FFFFFFF
 
 } OMX_INDEXTYPE;
