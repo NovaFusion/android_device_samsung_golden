@@ -42,6 +42,6 @@ LOCAL_C_INCLUDES += \
 	$(MULTIMEDIA_PATH)/video/vfm/include \
 	$(MULTIMEDIA_PATH)/audio/comfortnoise/proxy \
 	$(MULTIMEDIA_PATH)/shared/ste_shai/include \
-	$(LOCAL_PATH)/../../
+	$(LOCAL_PATH)/../
 
 include $(BUILD_SHARED_LIBRARY)
