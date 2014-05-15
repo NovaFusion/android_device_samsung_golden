@@ -45,6 +45,7 @@ BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x02000000
 TARGET_PREBUILT_KERNEL := device/samsung/golden/rootfs/kernel
+TARGET_NO_INITLOGO := true
 #TARGET_KERNEL_SOURCE := kernel/samsung/golden
 #TARGET_KERNEL_CONFIG := cm_golden_defconfig
 #TARGET_USE_ST_ERICSSON_KERNEL := true
