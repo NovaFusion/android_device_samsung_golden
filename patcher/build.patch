@@ -1,0 +1,191 @@
+From 8e1b82c082a8de9160e6c0fc3ded37b591c3e517 Mon Sep 17 00:00:00 2001
+From: JustArchi <JustArchi@JustArchi.net>
+Date: Sun, 18 May 2014 02:40:55 +0200
+Subject: [PATCH] JustArchi's ArchiDroid Optimizations V2
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+     _             _     _ ____            _     _
+    / \   _ __ ___| |__ (_)  _ \ _ __ ___ (_) __| |
+   / _ \ | '__/ __| '_ \| | | | | '__/ _ \| |/ _` |
+  / ___ \| | | (__| | | | | |_| | | | (_) | | (_| |
+ /_/   \_\_|  \___|_| |_|_|____/|_|  \___/|_|\__,_|
+
+Copyright (C) 2014 Łukasz "JustArchi" Domeradzki
+----------------------------------------------------------------------------------------------------------------
+This is the squashed commit of countless hours spent on trying to optimize Android to the maximum and push it to the limits.
+Please give proper credit if you decide to cherry-pick this commit. It includes countless number of full builds and tests, almost 200 hours spent on compiling and testing
+----------------------------------------------------------------------------------------------------------------
+WARNING! These modifcations are pretty DANGEROUS and may cause problems during compiling or running. You may also need to implement some fixes on your own.
+----------------------------------------------------------------------------------------------------------------
+Pre-requirements:
+- Turning off unknown flags error in android_frameworks_rs, this includes changing -Werror to -Wno-error in Android.mk and cpu_ref/Android.mk -> JustArchi/android_frameworks_rs@525af84 (this is required because clang doesn't support some flags we're globally using, therefore throwing error on unknown flags)
+- GCC 4.8, both androideabi and armeabi, these can be added to roomservice.xml from official google's repo, check platform/prebuilts/gcc/linux-x86/arm. Alternatively, you may also use custom toolchain, I'm using Linaro 4.8 -> https://github.com/JustArchi/Linaro. Eventually you can also change TARGET_GCC_VERSION back to 4.7, but 4.8 is highly proposed.
+- (Optional) Target user, instead of userdebug. You should build with user variant instead of userdebug, as user variant enables odexing and disables additional debug modules, i.e. dalvik debugging. This can be done by multiple ways, i.e. using proper lunch command or "brunch device user", such as "brunch i9300 user", requires this commit -> omnirom@687c588
+----------------------------------------------------------------------------------------------------------------
+Important notes (Optional):
+- ART doesn't work in Android KitKat 4.4.2 with GCC 4.8. This can be fixed with this commit -> JustArchi/android_art@8354d2d
+- If building with custom toolchain like Linaro, it may be possible that kernel won't build right away with "unknown cpu architecture" error. It may require some additional fixes, such as this commit -> JustArchi/android_kernel_samsung_smdk4412@6965f2f for smdk4412 kernel. Eventually, just use Google's arm-eabi and Linaro's arm-linux-androideabi, this way you'll build kernel with Google's toolchain and rest of the ROM with Linaro.
+- In some cases stock kernel may not boot when built with GCC 4.8. It looks like this commit -> JustArchi/android_kernel_samsung_smdk4412@803cd15 may help, but don't commit it unless required.
+- Due to O3 optimization, code is significantly larger and may cause problems with oversized images especially for older devices. For example, I couldn't apply O3 because building TWRP recovery failed due to the fact that it didn't fit on recovery's block in my device. In such case you have two options. You may use a hack and manually increase size of the blocks in your BoardCommonConfig.mk, so compiler doesn't yell about that (but you obviously can't flash such images), or you need to go back either to O2 or Os, up to you.
+----------------------------------------------------------------------------------------------------------------
+Important changes:
+- Updated GCC to 4.8, as it performs much better than default 4.7 and gives excellent results
+- Optimized for speed yet more all instructions - ARM and THUMB (-O3)
+- Turned off all debugging code (-DNDEBUG)
+- Performed loop invariant motion on trees. It also moved operands of conditions that are invariant out of the loop, so that we can use just trivial invariantness analysis in loop unswitching. The pass also includes store motion (-ftree-loop-im)
+- Created a canonical counter for number of iterations in loops for which determining number of iterations requires complicated analysis. Later optimizations then may determine the number easily (-ftree-loop-ivcanon)
+- Performed induction variable optimizations (strength reduction, induction variable merging and induction variable elimination) on trees (-fivopts)
+- Tried to reduce the number of symbolic address calculations by using shared “anchor” symbols to address nearby objects. This transformation can help to reduce the number of GOT entries and GOT accesses on some targets (-fsection-anchors)
+- Assumed that loop indices do not overflow, and that loops with nontrivial exit condition are not infinite. This enables a wider range of loop optimizations even if the loop optimizer itself cannot prove that these assumptions are valid (-funsafe-loop-optimizations)
+- Allowed the compiler to assume the strictest aliasing rules applicable to the language being compiled. For C (and C++), this activates optimizations based on the type of expressions. This is only applied to compatible Android parts (-fstrict-aliasing)
+- Placed each function and data item into its own section, this is required for -Wl,--gc-sections (-ffunction-sections -fdata-sections)
+- Moved branches with loop invariant conditions out of the loop (-funswitch-loops)
+- Attempted to avoid false dependencies in scheduled code by making use of registers left over after register allocation. This optimization most benefits processors with lots of registers (-frename-registers)
+- Re-ran common subexpression elimination after loop optimizations are performed (-frerun-cse-after-loop)
+- Didn't keep the frame pointer in a register for functions that don't need one. This avoids the instructions to save, set up and restore frame pointers; it also makes an extra register available in many functions (-fomit-frame-pointer)
+- Made a redundant load elimination pass performed after reload. The purpose of this pass is to clean up redundant spilling (-fgcse-after-reload)
+- Ran a store motion pass after global common subexpression elimination. This pass attempts to move stores out of loops (-fgcse-sm)
+- Eliminated redundant loads that come after stores to the same memory location, both partial and full redundancies (-fgcse-las)
+- Constructed webs as commonly used for register allocation purposes and assigned each web individual pseudo register. This allows the register allocation pass to operate on pseudos directly, but also strengthens several other optimization passes, such as CSE, loop optimizer and trivial dead code remover (-fweb)
+- Performed tail duplication to enlarge superblock size. This transformation simplifies the control flow of the function allowing other optimizations to do a better job (-ftracer)
+- Optimized GNU linker, which significantly reduces launching time and memory usage. This is especially visible during booting process, which is a few seconds faster than usual (-Wl,-O1)
+- Applied special --as-needed flag to GNU linker. The flag tells the linker to link in the produced binary only the libraries containing symbols actually used by the binary itself. This not only improves startup times (as the loader does not have to load all the libraries for every step) but might avoid the full initialization of things, which we're not even physically able to use (-Wl,--as-needed)
+- Performed global optimizations that become possible when the linker resolves addressing in the program, such as relaxing address modes and synthesizing new instructions in the output object file (-Wl,--relax)
+- Sorted the common symbols by alignment in descending order. This is to prevent gaps between symbols due to alignment constraints (-Wl,--sort-common)
+- Enabled garbage collection of unused input sections, thanks to -ffunction-sections and -fdata-sections (-Wl,--gc-sections)
+----------------------------------------------------------------------------------------------------------------
+Broken flags: -s -fipa-pta -fgraphite -fmodulo-sched -fmodulo-sched-allow-regmoves -ftree-parallelize-loops=n -flto=n
+
+-fipa-pta -> Compiles without problems but causes weird audio problems. From fast overview it looks like 48 KHz sounds are played 2-3 times faster.
+This is observed for example with default "Pixie Dust" notification sound
+
+-fgraphite -fgraphite-identity -floop-block -floop-flatten -floop-interchange -floop-strip-mine -floop-parallelize-all -ftree-loop-linear -> sorry, unimplemented: Graphite loop optimizations cannot be used
+
+-s (strip) -> Causes various dependency errors in: /tmp/ccpaTRR5.ltrans5.ltrans.o: In function `uprv_floor_51':
+ccpaTRR5.ltrans5.o:(.text+0x4cc0): undefined reference to `floor'
+
+-fmodulo-sched -fmodulo-sched-allow-regmoves -> Causes segmentation faults in:
+external/tremolo/Tremolo/res012.c: In function 'res_inverse': external/tremolo/Tremolo/res012.c:243:1: internal compiler error: Segmentation fault
+
+-ftree-parallelize-loops=n -> Causes segmentation faults in:
+system/core/include/utils/Vector.h: In member function 'void android::Vector<TYPE>::do_construct(...)': system/core/include/utils/Vector.h:389:6: internal compiler error: Segmentation fault
+
+-flto -> Causes internal compiler error in: lto1: internal compiler error: in lto_varpool_replace_node, at lto-symtab.c:304
+lto-wrapper: prebuilts/tools/gcc-sdk/../../gcc/linux-x86/host/i686-linux-glibc2.7-4.6/bin/i686-linux-g++ returned 1 exit status
+---
+ core/combo/TARGET_linux-arm.mk | 39 ++++++++++-----------------------------
+ core/combo/select.mk           | 12 +++++++++---
+ 2 files changed, 19 insertions(+), 32 deletions(-)
+
+diff --git a/core/combo/TARGET_linux-arm.mk b/core/combo/TARGET_linux-arm.mk
+index ece5b98..4dd457c 100644
+--- a/core/combo/TARGET_linux-arm.mk
++++ b/core/combo/TARGET_linux-arm.mk
+@@ -1,5 +1,11 @@
++#     _             _     _ ____            _     _
++#    / \   _ __ ___| |__ (_)  _ \ _ __ ___ (_) __| |
++#   / _ \ | '__/ __| '_ \| | | | | '__/ _ \| |/ _` |
++#  / ___ \| | | (__| | | | | |_| | | | (_) | | (_| |
++# /_/   \_\_|  \___|_| |_|_|____/|_|  \___/|_|\__,_|
+ #
+ # Copyright (C) 2006 The Android Open Source Project
++# Copyright (C) 2014 Łukasz "JustArchi" Domeradzki
+ #
+ # Licensed under the Apache License, Version 2.0 (the "License");
+ # you may not use this file except in compliance with the License.
+@@ -35,7 +41,7 @@ TARGET_ARCH_VARIANT := armv5te
+ endif
+ 
+ ifeq ($(strip $(TARGET_GCC_VERSION_EXP)),)
+-TARGET_GCC_VERSION := 4.7
++TARGET_GCC_VERSION := 4.8
+ else
+ TARGET_GCC_VERSION := $(TARGET_GCC_VERSION_EXP)
+ endif
+@@ -68,16 +74,9 @@ endif
+ 
+ TARGET_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
+ 
+-TARGET_arm_CFLAGS :=    -O2 \
+-                        -fomit-frame-pointer \
+-                        -fstrict-aliasing    \
+-                        -funswitch-loops
+-
+-# Modules can choose to compile some source as thumb.
+-TARGET_thumb_CFLAGS :=  -mthumb \
+-                        -Os \
+-                        -fomit-frame-pointer \
+-                        -fno-strict-aliasing
++TARGET_arm_CFLAGS := -O3 -DNDEBUG -funsafe-loop-optimizations -fsection-anchors -fivopts -ftree-loop-im -ftree-loop-ivcanon -ffunction-sections -fdata-sections -funswitch-loops -frename-registers -frerun-cse-after-loop -fomit-frame-pointer -fgcse-after-reload -fgcse-sm -fgcse-las -fweb -ftracer -fstrict-aliasing -Wstrict-aliasing=3 -Wno-error=strict-aliasing -Wno-error=unused-parameter -Wno-error=unused-but-set-variable -Wno-error=maybe-uninitialized
++TARGET_thumb_CFLAGS := -mthumb -O3 -DNDEBUG -funsafe-loop-optimizations -fsection-anchors -fivopts -ftree-loop-im -ftree-loop-ivcanon -ffunction-sections -fdata-sections -funswitch-loops -frename-registers -frerun-cse-after-loop -fomit-frame-pointer -fgcse-after-reload -fgcse-sm -fgcse-las -fweb -ftracer -fstrict-aliasing -Wstrict-aliasing=3 -Wno-error=strict-aliasing -Wno-error=unused-parameter -Wno-error=unused-but-set-variable -Wno-error=maybe-uninitialized
++TARGET_RELEASE_CFLAGS := -O3 -DNDEBUG -funsafe-loop-optimizations -fsection-anchors -fivopts -ftree-loop-im -ftree-loop-ivcanon -ffunction-sections -fdata-sections -funswitch-loops -frename-registers -frerun-cse-after-loop -fomit-frame-pointer -fgcse-after-reload -fgcse-sm -fgcse-las -fweb -ftracer -fstrict-aliasing -Wstrict-aliasing=3 -Wno-error=strict-aliasing -Wno-error=unused-parameter -Wno-error=unused-but-set-variable -Wno-error=maybe-uninitialized
+ 
+ # Set FORCE_ARM_DEBUGGING to "true" in your buildspec.mk
+ # or in your environment to force a full arm build, even for
+@@ -109,15 +108,6 @@ TARGET_GLOBAL_CFLAGS += \
+ 			-include $(android_config_h) \
+ 			-I $(dir $(android_config_h))
+ 
+-# This warning causes dalvik not to build with gcc 4.6+ and -Werror.
+-# We cannot turn it off blindly since the option is not available
+-# in gcc-4.4.x.  We also want to disable sincos optimization globally
+-# by turning off the builtin sin function.
+-ifneq ($(filter 4.6 4.6.% 4.7 4.7.%, $(TARGET_GCC_VERSION)),)
+-TARGET_GLOBAL_CFLAGS += -Wno-unused-but-set-variable -fno-builtin-sin \
+-			-fno-strict-volatile-bitfields
+-endif
+-
+ # This is to avoid the dreaded warning compiler message:
+ #   note: the mangling of 'va_list' has changed in GCC 4.4
+ #
+@@ -141,15 +131,6 @@ TARGET_GLOBAL_CFLAGS += -mthumb-interwork
+ 
+ TARGET_GLOBAL_CPPFLAGS += -fvisibility-inlines-hidden
+ 
+-# More flags/options can be added here
+-TARGET_RELEASE_CFLAGS := \
+-			-DNDEBUG \
+-			-g \
+-			-Wstrict-aliasing=2 \
+-			-fgcse-after-reload \
+-			-frerun-cse-after-loop \
+-			-frename-registers
+-
+ libc_root := bionic/libc
+ libm_root := bionic/libm
+ libstdc++_root := bionic/libstdc++
+diff --git a/core/combo/select.mk b/core/combo/select.mk
+index e485d00..d1c20d0 100644
+--- a/core/combo/select.mk
++++ b/core/combo/select.mk
+@@ -1,5 +1,11 @@
++#     _             _     _ ____            _     _
++#    / \   _ __ ___| |__ (_)  _ \ _ __ ___ (_) __| |
++#   / _ \ | '__/ __| '_ \| | | | | '__/ _ \| |/ _` |
++#  / ___ \| | | (__| | | | | |_| | | | (_) | | (_| |
++# /_/   \_\_|  \___|_| |_|_|____/|_|  \___/|_|\__,_|
+ #
+ # Copyright (C) 2006 The Android Open Source Project
++# Copyright (C) 2014 Łukasz "JustArchi" Domeradzki
+ #
+ # Licensed under the Apache License, Version 2.0 (the "License");
+ # you may not use this file except in compliance with the License.
+@@ -46,9 +52,9 @@ $(combo_target)HAVE_STRLCPY := 0
+ $(combo_target)HAVE_STRLCAT := 0
+ $(combo_target)HAVE_KERNEL_MODULES := 0
+ 
+-$(combo_target)GLOBAL_CFLAGS := -fno-exceptions -Wno-multichar
+-$(combo_target)RELEASE_CFLAGS := -O2 -g -fno-strict-aliasing
+-$(combo_target)GLOBAL_LDFLAGS :=
++$(combo_target)GLOBAL_CFLAGS := -O3 -DNDEBUG -funsafe-loop-optimizations -fivopts -ftree-loop-im -ftree-loop-ivcanon -ffunction-sections -fdata-sections -funswitch-loops -frename-registers -frerun-cse-after-loop -fomit-frame-pointer -fgcse-after-reload -fgcse-sm -fgcse-las -fweb -ftracer -fstrict-aliasing -Wstrict-aliasing=3 -Wno-error=strict-aliasing -Wno-error=unused-parameter -Wno-error=unused-but-set-variable -Wno-error=maybe-uninitialized -fno-exceptions -Wno-multichar
++$(combo_target)RELEASE_CFLAGS := -O3 -DNDEBUG -funsafe-loop-optimizations -fivopts -ftree-loop-im -ftree-loop-ivcanon -ffunction-sections -fdata-sections -funswitch-loops -frename-registers -frerun-cse-after-loop -fomit-frame-pointer -fgcse-after-reload -fgcse-sm -fgcse-las -fweb -ftracer -fstrict-aliasing -Wstrict-aliasing=3 -Wno-error=strict-aliasing -Wno-error=unused-parameter -Wno-error=unused-but-set-variable -Wno-error=maybe-uninitialized
++$(combo_target)GLOBAL_LDFLAGS := -Wl,-O1 -Wl,--as-needed -Wl,--relax -Wl,--sort-common -Wl,--gc-sections
+ $(combo_target)GLOBAL_ARFLAGS := crsP
+ 
+ $(combo_target)EXECUTABLE_SUFFIX :=
+-- 
+1.9.3
+
+
