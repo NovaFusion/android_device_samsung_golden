@@ -106,7 +106,7 @@ PRODUCT_COPY_FILES += \
     device/samsung/golden/prebuilt/bin/admsrv:system/bin/admsrv \
     device/samsung/golden/prebuilt/bin/cspsa-server:system/bin/cspsa-server \
     device/samsung/golden/prebuilt/bin/msa:system/bin/msa \
-    device/samsung/golden/prebuilts/bin/mount.exfat:system/bin/mount.exfat
+    device/samsung/golden/prebuilt/bin/mount.exfat:system/bin/mount.exfat
 
 # System STE Configs
 PRODUCT_COPY_FILES += \
