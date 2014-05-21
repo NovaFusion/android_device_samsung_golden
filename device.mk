@@ -32,7 +32,8 @@ PRODUCT_PACKAGES += \
     lights.montblanc \
     copybit.montblanc \
     hwcomposer.montblanc \
-    gralloc.montblanc
+    gralloc.montblanc \
+    libstelpcutils
 
 # Misc packages
 PRODUCT_PACKAGES += \
@@ -96,7 +97,6 @@ PRODUCT_COPY_FILES += \
     device/samsung/golden/prebuilt/lib/libste_ens_audio_samplerateconv.so:system/lib/libste_ens_audio_samplerateconv.so \
     device/samsung/golden/prebuilt/lib/libste_ensloader.so:system/lib/libste_ensloader.so \
     device/samsung/golden/prebuilt/lib/libstecom.so:system/lib/libstecom.so \
-    device/samsung/golden/prebuilt/lib/libstelpcutils.so:system/lib/libstelpcutils.so \
     device/samsung/golden/prebuilt/lib/libsterc.so:system/lib/libsterc.so \
     device/samsung/golden/prebuilt/lib/libtee.so:system/lib/libtee.so \
     device/samsung/golden/prebuilt/lib/libtrace.so:system/lib/libtrace.so
