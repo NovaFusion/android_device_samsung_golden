@@ -161,6 +161,9 @@ Only the three quirks included above are recognized at this point:
             <Quirk name="requires-store-metadata-before-idle" />
         </MediaCodec>
 
+	<MediaCodec name="OMX.google.vp8.decoder" type="video/x-vnd.on2.vp8" />
+	<MediaCodec name="OMX.google.vp9.decoder" type="video/x-vnd.on2.vp9" />
+
 <!-- Audio encoders -->
         <MediaCodec name="OMX.google.amrnb.encoder" type="audio/3gpp" />
         <MediaCodec name="OMX.google.amrwb.encoder" type="audio/amr-wb" />
