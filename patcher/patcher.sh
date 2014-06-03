@@ -34,10 +34,6 @@ echo -e "\n\e[0;31mPatching BUILD:\e[0;34m"
 cd $BASEDIR/build
 patch -p1 -N -i$PATCHERDIR/build.patch
 
-echo -e "\n\e[0;31mPatching RS:\e[0;34m"
-cd $BASEDIR/frameworks/rs
-patch -p1 -N -i$PATCHERDIR/rs.patch
-
 echo -e "\n\e[0;31mPatching ART:\e[0;34m"
 cd $BASEDIR/art
 patch -p1 -N -i$PATCHERDIR/art.patch
