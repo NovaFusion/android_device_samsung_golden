@@ -33,7 +33,8 @@ PRODUCT_PACKAGES += \
     copybit.montblanc \
     hwcomposer.montblanc \
     gralloc.montblanc \
-    libstelpcutils
+    libstelpcutils \
+    libchuj
 
 # Misc packages
 PRODUCT_PACKAGES += \
