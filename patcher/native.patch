@@ -1,31 +1,3 @@
-From 9228ac24c7391bebc4c95f7f77e2151af96c979e Mon Sep 17 00:00:00 2001
-From: Marcin Chojnacki <marcinch7@gmail.com>
-Date: Sat, 26 Apr 2014 17:22:20 +0200
-Subject: [PATCH] novafusion: st-ericsson native patch
-
-Change-Id: If9c1ee358c254bfc9c50effc0ded10fa736cc6db
----
- include/binder/MemoryBase.h               |   3 +
- include/binder/Parcel.h                   |  29 ++----
- include/gui/BufferQueue.h                 |   3 +
- include/gui/ConsumerBase.h                |   3 +
- include/gui/GLConsumer.h                  |  35 +++++++
- include/gui/IGraphicBufferConsumer.h      |   3 +-
- include/gui/IGraphicBufferProducer.h      |   3 +-
- include/media/openmax/OMX_IVCommon.h      |   3 +
- include/ui/Fence.h                        |   2 +-
- include/ui/FramebufferNativeWindow.h      |   9 +-
- include/ui/GraphicBuffer.h                |  10 +-
- include/ui/Region.h                       |  24 +++++
- libs/binder/MemoryBase.cpp                |  18 ++++
- libs/binder/Parcel.cpp                    |  10 ++
- libs/gui/Android.mk                       |   1 +
- libs/gui/GLConsumer.cpp                   | 154 +++++++++++++++++++++++++++++-
- libs/ui/FramebufferNativeWindow.cpp       |   9 +-
- libs/ui/PixelFormat.cpp                   |   4 +
- services/surfaceflinger/DisplayDevice.cpp |   7 ++
- 19 files changed, 287 insertions(+), 43 deletions(-)
-
 diff --git a/include/binder/MemoryBase.h b/include/binder/MemoryBase.h
 index 463e26d..5bf104b 100644
 --- a/include/binder/MemoryBase.h
@@ -41,7 +13,7 @@ index 463e26d..5bf104b 100644
  private:
      size_t          mSize;
 diff --git a/include/binder/Parcel.h b/include/binder/Parcel.h
-index c95f297..41902e1 100644
+index 98f20de..4c89fc3 100644
 --- a/include/binder/Parcel.h
 +++ b/include/binder/Parcel.h
 @@ -27,8 +27,8 @@
@@ -54,10 +26,10 @@ index c95f297..41902e1 100644
  class IBinder;
  class IPCThreadState;
  class ProcessState;
-@@ -102,9 +102,7 @@ public:
-     status_t            writeStrongBinder(const sp<IBinder>& val);
+@@ -103,9 +103,7 @@ public:
      status_t            writeWeakBinder(const wp<IBinder>& val);
      status_t            writeInt32Array(size_t len, const int32_t *val);
+     status_t            writeByteArray(size_t len, const uint8_t *val);
 -
 -    template<typename T>
 -    status_t            write(const Flattenable<T>& val);
@@ -65,7 +37,7 @@ index c95f297..41902e1 100644
  
      template<typename T>
      status_t            write(const LightFlattenable<T>& val);
-@@ -159,9 +157,7 @@ public:
+@@ -160,9 +158,7 @@ public:
      const char16_t*     readString16Inplace(size_t* outLen) const;
      sp<IBinder>         readStrongBinder() const;
      wp<IBinder>         readWeakBinder() const;
@@ -76,7 +48,7 @@ index c95f297..41902e1 100644
  
      template<typename T>
      status_t            read(LightFlattenable<T>& val) const;
-@@ -274,11 +270,10 @@ private:
+@@ -275,11 +271,10 @@ private:
          virtual status_t unflatten(void const* buffer, size_t size, int const* fds, size_t count) = 0;
      };
  
@@ -90,7 +62,7 @@ index c95f297..41902e1 100644
  
      public:
          virtual size_t getFlattenedSize() const {
-@@ -291,7 +286,7 @@ private:
+@@ -292,7 +287,7 @@ private:
              return val.flatten(buffer, size, fds, count);
          }
          virtual status_t unflatten(void const* buffer, size_t size, int const* fds, size_t count) {
@@ -99,7 +71,7 @@ index c95f297..41902e1 100644
          }
      };
      status_t write(const FlattenableHelperInterface& val);
-@@ -314,12 +309,6 @@ public:
+@@ -315,12 +310,6 @@ public:
  // ---------------------------------------------------------------------------
  
  template<typename T>
@@ -112,7 +84,7 @@ index c95f297..41902e1 100644
  status_t Parcel::write(const LightFlattenable<T>& val) {
      size_t size(val.getFlattenedSize());
      if (!val.isFixedSize()) {
-@@ -338,12 +327,6 @@ status_t Parcel::write(const LightFlattenable<T>& val) {
+@@ -339,12 +328,6 @@ status_t Parcel::write(const LightFlattenable<T>& val) {
  }
  
  template<typename T>
@@ -410,10 +382,10 @@ index 5c82330..11b128c 100644
  }; // namespace android
  
 diff --git a/libs/binder/Parcel.cpp b/libs/binder/Parcel.cpp
-index 38e019c..5bb0550 100644
+index db9e0a1..5b0153b 100644
 --- a/libs/binder/Parcel.cpp
 +++ b/libs/binder/Parcel.cpp
-@@ -808,6 +808,11 @@ status_t Parcel::writeBlob(size_t len, WritableBlob* outBlob)
+@@ -819,6 +819,11 @@ status_t Parcel::writeBlob(size_t len, WritableBlob* outBlob)
      return status;
  }
  
@@ -425,7 +397,7 @@ index 38e019c..5bb0550 100644
  status_t Parcel::write(const FlattenableHelperInterface& val)
  {
      status_t err;
-@@ -1184,6 +1189,11 @@ status_t Parcel::readBlob(size_t len, ReadableBlob* outBlob) const
+@@ -1197,6 +1202,11 @@ status_t Parcel::readBlob(size_t len, ReadableBlob* outBlob) const
      return NO_ERROR;
  }
  
@@ -450,7 +422,7 @@ index 80746e4..018ed28 100644
  
  # Executed only on QCOM BSPs
 diff --git a/libs/gui/GLConsumer.cpp b/libs/gui/GLConsumer.cpp
-index d133ce2..2aad50c 100644
+index de83a20..9a0d072 100644
 --- a/libs/gui/GLConsumer.cpp
 +++ b/libs/gui/GLConsumer.cpp
 @@ -133,6 +133,9 @@ GLConsumer::GLConsumer(const sp<IGraphicBufferConsumer>& bq, uint32_t tex,
@@ -579,7 +551,7 @@ index d133ce2..2aad50c 100644
          if (image == EGL_NO_IMAGE_KHR) {
              ST_LOGW("updateAndRelease: unable to createImage on display=%p slot=%d",
                    mEglDisplay, buf);
-@@ -393,7 +485,12 @@ status_t GLConsumer::updateAndReleaseLocked(const BufferQueue::BufferItem& item)
+@@ -395,7 +487,12 @@ status_t GLConsumer::updateAndReleaseLocked(const BufferQueue::BufferItem& item)
          // release the old buffer, so instead we just drop the new frame.
          // As we are still under lock since acquireBuffer, it is safe to
          // release by slot.
@@ -593,7 +565,7 @@ index d133ce2..2aad50c 100644
                  mEglDisplay, EGL_NO_SYNC_KHR);
          return err;
      }
-@@ -418,7 +515,11 @@ status_t GLConsumer::updateAndReleaseLocked(const BufferQueue::BufferItem& item)
+@@ -420,7 +517,11 @@ status_t GLConsumer::updateAndReleaseLocked(const BufferQueue::BufferItem& item)
  
      // Update the GLConsumer state.
      mCurrentTexture = buf;
@@ -605,7 +577,7 @@ index d133ce2..2aad50c 100644
      mCurrentCrop = item.mCrop;
      mCurrentTransform = item.mTransform;
      mCurrentScalingMode = item.mScalingMode;
-@@ -910,6 +1011,55 @@ EGLImageKHR GLConsumer::createImage(EGLDisplay dpy,
+@@ -912,6 +1013,55 @@ EGLImageKHR GLConsumer::createImage(EGLDisplay dpy,
      return image;
  }
  
@@ -722,6 +694,3 @@ index f56a1c5..be9f709 100755
  
      int format;
      window->query(window, NATIVE_WINDOW_FORMAT, &format);
--- 
-1.8.5.3
-
