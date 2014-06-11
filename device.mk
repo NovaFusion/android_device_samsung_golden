@@ -42,6 +42,12 @@ PRODUCT_PACKAGES += \
     setup_fs \
     Stk
 
+# F2FS
+PRODUCT_PACKAGES += \
+    mkfs.f2fs \
+    fsck.f2fs \
+    fibmap.f2fs
+
 ##########################################
 ## Kernel stuff
 ##########################################
