@@ -60,7 +60,7 @@ PRODUCT_COPY_FILES := \
 PRODUCT_COPY_FILES += \
     device/samsung/golden/rootfs/init.samsunggolden.rc:root/init.samsunggolden.rc \
     device/samsung/golden/rootfs/init.samsunggolden.usb.rc:root/init.samsunggolden.usb.rc \
-    device/samsung/golden/rootfs/fstab.samsunggolden:root/fstab.samsunggolden \
+    device/samsung/golden/rootfs/sbin/fstabmaker:root/sbin/fstabmaker \
     device/samsung/golden/rootfs/ueventd.samsunggolden.rc:root/ueventd.samsunggolden.rc \
     device/samsung/golden/rootfs/lpm.rc:root/lpm.rc
 
