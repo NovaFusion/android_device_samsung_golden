@@ -27,7 +27,12 @@ const char fstab_original_a[] =
 "# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK\n"
 "\n"
 "/dev/block/mmcblk0p22                       /system              ext4    ro                                                    wait\n"
-"/dev/block/mmcblk0p23                       /cache               ext4    noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait\n"
+;
+
+const char fstab_cache_f2fs[] = "/dev/block/mmcblk0p23                       /cache               f2fs    noatime,nosuid,nodev,discard,inline_xattr             wait\n";
+const char fstab_cache_ext4[] = "/dev/block/mmcblk0p23                       /cache               ext4    noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait\n";
+
+const char fstab_original_b[] =
 "/dev/block/mmcblk0p12                       /modemfs             ext4    noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait\n"
 "/dev/block/mmcblk0p11                       /efs                 ext4    noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait\n"
 ;
@@ -35,7 +40,7 @@ const char fstab_original_a[] =
 const char fstab_data_f2fs[] = "/dev/block/mmcblk0p25                       /data                f2fs    noatime,nosuid,nodev,discard,inline_xattr             wait,encryptable=footer\n";
 const char fstab_data_ext4[] = "/dev/block/mmcblk0p25                       /data                ext4    noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait,encryptable=footer\n";
 
-const char fstab_original_b[] =
+const char fstab_original_c[] =
 "/dev/block/mmcblk0p20                       /boot                emmc    defaults                                              defaults\n"
 "/dev/block/mmcblk0p21                       /recovery            emmc    defaults                                              defaults\n"
 "/devices/sdi0/mmc_host/mmc1/mmc1            /storage/sdcard1     auto    defaults                                              voldmanaged=sdcard1:auto\n"

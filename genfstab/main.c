@@ -26,21 +26,24 @@
 #define UID_SYSTEM 1000
 #define GID_SYSTEM 1000
 
-#define WRITE_STATIC(data) write(fd, data, sizeof(data) - 1)
-#define WRITE_DYNAMIC write_entry
-
 int fd;
 
-void write_entry(const char *device, const char *if_f2fs, const char *if_ext4) {
+void write_static(const char *data) {
+    write(fd, data, strlen(data));
+}
+
+void write_dynamic(const char *device, const char *if_f2fs, const char *if_ext4) {
     short f2fs = is_f2fs(device);
-    if (f2fs == 1) write(fd, if_f2fs, strlen(if_f2fs));
-    if (f2fs == 0) write(fd, if_ext4, strlen(if_ext4));
+    if (f2fs == 1) write_static(if_f2fs);
+    if (f2fs == 0) write_static(if_ext4);
 }
 
 void write_fstab() {
-    WRITE_STATIC(fstab_original_a);
-    WRITE_DYNAMIC(BLOCK_DATA, fstab_data_f2fs, fstab_data_ext4);
-    WRITE_STATIC(fstab_original_b);
+    write_static(fstab_original_a);
+    write_dynamic(BLOCK_CACHE, fstab_cache_f2fs, fstab_cache_ext4);
+    write_static(fstab_original_b);
+    write_dynamic(BLOCK_DATA, fstab_data_f2fs, fstab_data_ext4);
+    write_static(fstab_original_c);
 }
 
 int main() {
