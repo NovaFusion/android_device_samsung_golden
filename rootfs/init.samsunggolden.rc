@@ -68,7 +68,7 @@ on init
     chmod 0644 /proc/cmdline
 
 on fs
-    exec /sbin/fstabmaker
+    exec /sbin/genfstab
     mount_all /fstab.samsunggolden
     setprop ro.crypto.fuse_sdcard true
     start cspsa
