@@ -44,6 +44,7 @@ PRODUCT_PACKAGES += \
 
 # F2FS
 PRODUCT_PACKAGES += \
+    genfstab \
     mkfs.f2fs \
     fsck.f2fs \
     fibmap.f2fs
@@ -60,7 +61,6 @@ PRODUCT_COPY_FILES := \
 PRODUCT_COPY_FILES += \
     device/samsung/golden/rootfs/init.samsunggolden.rc:root/init.samsunggolden.rc \
     device/samsung/golden/rootfs/init.samsunggolden.usb.rc:root/init.samsunggolden.usb.rc \
-    device/samsung/golden/rootfs/sbin/genfstab:root/sbin/genfstab \
     device/samsung/golden/rootfs/ueventd.samsunggolden.rc:root/ueventd.samsunggolden.rc \
     device/samsung/golden/rootfs/lpm.rc:root/lpm.rc
 
