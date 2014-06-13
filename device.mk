@@ -120,7 +120,8 @@ PRODUCT_COPY_FILES += \
     device/samsung/golden/prebuilt/etc/ste_modem.sh:system/etc/ste_modem.sh \
     device/samsung/golden/prebuilt/etc/adm.sqlite-ab8505_v2:system/etc/adm.sqlite-ab8505_v2 \
     device/samsung/golden/prebuilt/etc/plmn.latam.list:system/etc/plmn.latam.list \
-    device/samsung/golden/prebuilt/etc/plmn.operator.list:system/etc/plmn.operator.list
+    device/samsung/golden/prebuilt/etc/plmn.operator.list:system/etc/plmn.operator.list \
+    device/samsung/golden/prebuilt/etc/cspsa.conf:system/etc/cspsa.conf
 
 ##########################################
 ## Displaying/Graphic
@@ -576,11 +577,6 @@ PRODUCT_COPY_FILES += \
 #########################################
 ## Other stuff
 #########################################
-
-# Rest of /system/etc
-PRODUCT_COPY_FILES += \
-    device/samsung/golden/prebuilt/etc/cspsa.conf:system/etc/cspsa.conf \
-    device/samsung/golden/prebuilt/etc/vold.fstab:system/etc/vold.fstab
 
 # Permissions
 PRODUCT_COPY_FILES += \
