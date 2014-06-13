@@ -24,19 +24,21 @@
 #define UID_SYSTEM 1000
 #define GID_SYSTEM 1000
 
+void write_entry(int fd, const char *device, const char *if_f2fs, const char *if_ext4) {
+    short f2fs = is_f2fs(device);
+    if (f2fs == 1) write(fd, if_f2fs, sizeof(if_f2fs) - 1);
+    if (f2fs == 0) write(fd, if_ext4, sizeof(if_ext4) - 1);
+}
+
 int main() {
-    int fd = open(FSTAB, O_WRONLY | O_CREAT | O_TRUNC, 0640);
+    int fd = open(FSTAB_PATH, O_WRONLY | O_CREAT | O_TRUNC, 0640);
     if (fd != -1) {
-        write(fd, fstab_top, sizeof(fstab_top) - 1);
+        write(fd, fstab_original_a, sizeof(fstab_original_a) - 1);
+        write_entry(fd, BLOCK_DATA, fstab_data_f2fs, fstab_data_ext4);
+        write(fd, fstab_original_b, sizeof(fstab_original_b) - 1);
 
-        short f2fs = is_f2fs(BLOCK_DATA);
-        if (f2fs == 1) write(fd, fstab_f2fs, sizeof(fstab_f2fs) - 1);
-        if (f2fs == 0) write(fd, fstab_ext4, sizeof(fstab_ext4) - 1);
-
-        write(fd, fstab_bottom, sizeof(fstab_bottom) - 1);
         close(fd);
-
-        chown(FSTAB, UID_SYSTEM, GID_SYSTEM);
+        chown(FSTAB_PATH, UID_SYSTEM, GID_SYSTEM);
     }
 
     return 0;

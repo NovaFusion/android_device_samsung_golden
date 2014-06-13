@@ -18,9 +18,9 @@
 #ifndef FSTAB_H
 #define FSTAB_H
 
-#define FSTAB "/fstab.samsunggolden"
+#define FSTAB_PATH "/fstab.samsunggolden"
 
-const char fstab_top[] =
+const char fstab_original_a[] =
 "# Android fstab file.\n"
 "#<src>                                       <mnt_point>          <type>  <mnt_flags>                                           <fs_mgr_flags>\n"
 "# The filesystem that contains the filesystem checker binary (typically /system) cannot\n"
@@ -32,15 +32,10 @@ const char fstab_top[] =
 "/dev/block/mmcblk0p11                       /efs                 ext4    noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait\n"
 ;
 
-const char fstab_ext4[] =
-"/dev/block/mmcblk0p25                       /data                ext4    noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait,encryptable=footer\n"
-;
+const char fstab_data_f2fs[] = "/dev/block/mmcblk0p25                       /data                f2fs    noatime,nosuid,nodev,discard,inline_xattr             wait,encryptable=footer\n";
+const char fstab_data_ext4[] = "/dev/block/mmcblk0p25                       /data                ext4    noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait,encryptable=footer\n";
 
-const char fstab_f2fs[] =
-"/dev/block/mmcblk0p25                       /data                f2fs    noatime,nosuid,nodev,discard,inline_xattr             wait,encryptable=footer\n"
-;
-
-const char fstab_bottom[] =
+const char fstab_original_b[] =
 "/dev/block/mmcblk0p20                       /boot                emmc    defaults                                              defaults\n"
 "/dev/block/mmcblk0p21                       /recovery            emmc    defaults                                              defaults\n"
 "/devices/sdi0/mmc_host/mmc1/mmc1            /storage/sdcard1     auto    defaults                                              voldmanaged=sdcard1:auto\n"

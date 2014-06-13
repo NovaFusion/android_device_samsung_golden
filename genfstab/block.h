@@ -18,7 +18,9 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
-#define BLOCK_DATA "/dev/block/mmcblk0p25"
+#define BLOCK_SYSTEM "/dev/block/mmcblk0p22"
+#define BLOCK_CACHE  "/dev/block/mmcblk0p23"
+#define BLOCK_DATA   "/dev/block/mmcblk0p25"
 
 short is_f2fs(const char *device);
 
