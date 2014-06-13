@@ -18,25 +18,35 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <string.h>
+
 #include "fstab.h"
 #include "block.h"
 
 #define UID_SYSTEM 1000
 #define GID_SYSTEM 1000
 
-void write_entry(int fd, const char *device, const char *if_f2fs, const char *if_ext4) {
+#define WRITE_STATIC(data) write(fd, data, sizeof(data) - 1)
+#define WRITE_DYNAMIC write_entry
+
+int fd;
+
+void write_entry(const char *device, const char *if_f2fs, const char *if_ext4) {
     short f2fs = is_f2fs(device);
-    if (f2fs == 1) write(fd, if_f2fs, sizeof(if_f2fs) - 1);
-    if (f2fs == 0) write(fd, if_ext4, sizeof(if_ext4) - 1);
+    if (f2fs == 1) write(fd, if_f2fs, strlen(if_f2fs));
+    if (f2fs == 0) write(fd, if_ext4, strlen(if_ext4));
+}
+
+void write_fstab() {
+    WRITE_STATIC(fstab_original_a);
+    WRITE_DYNAMIC(BLOCK_DATA, fstab_data_f2fs, fstab_data_ext4);
+    WRITE_STATIC(fstab_original_b);
 }
 
 int main() {
-    int fd = open(FSTAB_PATH, O_WRONLY | O_CREAT | O_TRUNC, 0640);
+    fd = open(FSTAB_PATH, O_WRONLY | O_CREAT | O_TRUNC, 0640);
     if (fd != -1) {
-        write(fd, fstab_original_a, sizeof(fstab_original_a) - 1);
-        write_entry(fd, BLOCK_DATA, fstab_data_f2fs, fstab_data_ext4);
-        write(fd, fstab_original_b, sizeof(fstab_original_b) - 1);
-
+        write_fstab();
         close(fd);
         chown(FSTAB_PATH, UID_SYSTEM, GID_SYSTEM);
     }
