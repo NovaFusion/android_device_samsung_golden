@@ -431,10 +431,10 @@ static int mapFrameBufferLocked(struct hwmem_gralloc_module_t* module)
     if (divisor)
         refreshRate = (int)(1000000000000000LLU / divisor);
 
-    if (refreshRate == 0) {
+    //if (refreshRate == 0) {
         // bleagh, bad info from the driver
         refreshRate = 60*1000;  // 60 Hz
-    }
+    //}
 
     if ((int)info.width <= 0 || (int)info.height <= 0) {
         // the driver doesn't return that information
