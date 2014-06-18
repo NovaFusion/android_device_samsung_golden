@@ -1,0 +1,102 @@
+diff --git a/src/com/android/settings/applications/InstalledAppDetails.java b/src/com/android/settings/applications/InstalledAppDetails.java
+index 9a24e33..72b53c1 100755
+--- a/src/com/android/settings/applications/InstalledAppDetails.java
++++ b/src/com/android/settings/applications/InstalledAppDetails.java
+@@ -295,7 +295,7 @@ public class InstalledAppDetails extends Fragment
+     }
+ 
+     private void initMoveButton() {
+-        if (Environment.isExternalStorageEmulated()) {
++        if (!Environment.isExternalAppsAvailableAndMounted()) {
+             mMoveAppButton.setVisibility(View.INVISIBLE);
+             return;
+         }
+@@ -500,7 +500,7 @@ public class InstalledAppDetails extends Fragment
+         mExternalCodeSize = (TextView)view.findViewById(R.id.external_code_size_text);
+         mExternalDataSize = (TextView)view.findViewById(R.id.external_data_size_text);
+ 
+-        if (Environment.isExternalStorageEmulated()) {
++        if (!Environment.isExternalAppsAvailableAndMounted()) {
+             ((View)mExternalCodeSize.getParent()).setVisibility(View.GONE);
+             ((View)mExternalDataSize.getParent()).setVisibility(View.GONE);
+         }
+@@ -1024,7 +1024,7 @@ public class InstalledAppDetails extends Fragment
+             mHaveSizes = true;
+             long codeSize = mAppEntry.codeSize;
+             long dataSize = mAppEntry.dataSize;
+-            if (Environment.isExternalStorageEmulated()) {
++            if (!Environment.isExternalAppsAvailableAndMounted()) {
+                 codeSize += mAppEntry.externalCodeSize;
+                 dataSize +=  mAppEntry.externalDataSize;
+             } else {
+diff --git a/src/com/android/settings/applications/ManageApplications.java b/src/com/android/settings/applications/ManageApplications.java
+index dc455ef..a3cee63 100644
+--- a/src/com/android/settings/applications/ManageApplications.java
++++ b/src/com/android/settings/applications/ManageApplications.java
+@@ -347,7 +347,7 @@ public class ManageApplications extends Fragment implements
+                 if (mContainerService != null) {
+                     try {
+                         final long[] stats = mContainerService.getFileSystemStats(
+-                                Environment.getExternalStorageDirectory().getPath());
++                                Environment.getExternalAppsVolumeDirectory().getPath());
+                         mTotalStorage = stats[0];
+                         mFreeStorage = stats[1];
+                     } catch (RemoteException e) {
+@@ -375,13 +375,13 @@ public class ManageApplications extends Fragment implements
+                     }
+                 }
+ 
+-                final boolean emulatedStorage = Environment.isExternalStorageEmulated();
++                final boolean externalApps = Environment.isExternalAppsAvailableAndMounted();
+                 if (mApplications != null) {
+                     final int N = mApplications.getCount();
+                     for (int i=0; i<N; i++) {
+                         ApplicationsState.AppEntry ae = mApplications.getAppEntry(i);
+                         mAppStorage += ae.codeSize + ae.dataSize;
+-                        if (emulatedStorage) {
++                        if (!externalApps) {
+                             mAppStorage += ae.externalCodeSize + ae.externalDataSize;
+                         }
+                     }
+@@ -622,8 +622,8 @@ public class ManageApplications extends Fragment implements
+             if (DEBUG) Log.i(TAG, "Rebuilding app list...");
+             ApplicationsState.AppFilter filterObj;
+             Comparator<AppEntry> comparatorObj;
+-            boolean emulated = Environment.isExternalStorageEmulated();
+-            if (emulated) {
++            boolean externalApps = Environment.isExternalAppsAvailableAndMounted();
++            if (!externalApps) {
+                 mWhichSize = SIZE_TOTAL;
+             } else {
+                 mWhichSize = SIZE_INTERNAL;
+@@ -634,7 +634,7 @@ public class ManageApplications extends Fragment implements
+                     break;
+                 case FILTER_APPS_SDCARD:
+                     filterObj = ApplicationsState.ON_SD_CARD_FILTER;
+-                    if (!emulated) {
++                    if (externalApps) {
+                         mWhichSize = SIZE_EXTERNAL;
+                     }
+                     break;
+@@ -887,7 +887,7 @@ public class ManageApplications extends Fragment implements
+                 LIST_TYPE_DOWNLOADED, this, savedInstanceState);
+         mTabs.add(tab);
+ 
+-        if (!Environment.isExternalStorageEmulated()) {
++        if (Environment.isExternalAppsAvailableAndMounted()) {
+             tab = new TabInfo(this, mApplicationsState,
+                     getActivity().getString(R.string.filter_apps_onsdcard),
+                     LIST_TYPE_SDCARD, this, savedInstanceState);
+diff --git a/src/com/android/settings/deviceinfo/StorageMeasurement.java b/src/com/android/settings/deviceinfo/StorageMeasurement.java
+index 34ef62b..e1dd3bb 100644
+--- a/src/com/android/settings/deviceinfo/StorageMeasurement.java
++++ b/src/com/android/settings/deviceinfo/StorageMeasurement.java
+@@ -249,7 +249,7 @@ public class StorageMeasurement {
+                 long codeSize = stats.codeSize;
+                 long dataSize = stats.dataSize;
+                 long cacheSize = stats.cacheSize;
+-                if (Environment.isExternalStorageEmulated()) {
++                if (!Environment.isExternalAppsAvailableAndMounted()) {
+                     // Include emulated storage when measuring internal. OBB is
+                     // shared on emulated storage, so treat as code.
+                     codeSize += stats.externalCodeSize + stats.externalObbSize;

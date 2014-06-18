@@ -26,9 +26,17 @@ echo -e "\n\e[0;31mPatching CORE:\e[0;34m"
 cd $BASEDIR/system/core
 patch -p1 -N -i$PATCHERDIR/core.patch
 
+echo -e "\n\e[0;31mPatching VOLD:\e[0;34m"
+cd $BASEDIR/system/vold
+patch -p1 -N -i$PATCHERDIR/vold.patch
+
 echo -e "\n\e[0;31mPatching TELEPHONY:\e[0;34m"
 cd $BASEDIR/packages/services/Telephony
 patch -p1 -N -i$PATCHERDIR/telephony.patch
+
+echo -e "\n\e[0;31mPatching SETTINGS:\e[0;34m"
+cd $BASEDIR/packages/apps/Settings
+patch -p1 -N -i$PATCHERDIR/settings.patch
 
 echo -e "\n\e[0;31mPatching BUILD:\e[0;34m"
 cd $BASEDIR/build
