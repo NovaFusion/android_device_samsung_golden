@@ -1,77 +1,3 @@
-From 0cf89401cc8092dda959b5746ec4899fda756cec Mon Sep 17 00:00:00 2001
-From: JustArchi <JustArchi@JustArchi.net>
-Date: Sat, 31 May 2014 04:27:05 +0200
-Subject: [PATCH] JustArchi's ArchiDroid Optimizations V3
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-     _             _     _ ____            _     _
-    / \   _ __ ___| |__ (_)  _ \ _ __ ___ (_) __| |
-   / _ \ | '__/ __| '_ \| | | | | '__/ _ \| |/ _` |
-  / ___ \| | | (__| | | | | |_| | | | (_) | | (_| |
- /_/   \_\_|  \___|_| |_|_|____/|_|  \___/|_|\__,_|
-
-Copyright (C) 2014 Łukasz "JustArchi" Domeradzki
-----------------------------------------------------------------------------------------------------------------
-This is the squashed commit of countless hours spent on trying to optimize Android to the maximum and push it to the limits.
-Please give proper credit if you decide to cherry-pick this commit. It includes countless number of full builds and tests, almost 200 hours spent on compiling and testing
-----------------------------------------------------------------------------------------------------------------
-WARNING! These modifcations are pretty DANGEROUS and may cause problems during compiling or running. You may also need to implement some fixes on your own.
-----------------------------------------------------------------------------------------------------------------
-Pre-requirements:
-- GCC 4.8, both androideabi and armeabi, these can be added to your local manifest (roomservice.xml). You can use:
-1. Google's GCC toolchain from official google's repo -> https://android.googlesource.com/platform/prebuilts/gcc/darwin-x86/arm/arm-eabi-4.8 and https://android.googlesource.com/platform/prebuilts/gcc/darwin-x86/arm/arm-linux-androideabi-4.8
-2. Linaro 4.8 (proposed) -> https://github.com/JustArchi/Linaro/tree/4.8-eabi and https://github.com/JustArchi/Linaro/tree/4.8-androideabi
-3. SaberMod -> https://github.com/SaberMod
-4. Eventually you can also change TARGET_GCC_VERSION back to 4.7, but 4.8 is highly proposed for performance boost.
-
-- (Optional) Target user, instead of userdebug. You should build with user variant instead of userdebug, as user variant enables odexing and disables additional debug modules, i.e. dalvik debugging. This can be done by multiple ways, i.e. using proper lunch command (i.e. lunching cm_i9300-user instead of cm_i9300-userdebug) or "brunch device user", such as "brunch i9300 user", if you have this commit -> omnirom@687c588
-----------------------------------------------------------------------------------------------------------------
-Important notes:
-- ART doesn't work in Android KitKat 4.4.2 with GCC 4.8. This can be fixed with this commit -> JustArchi/android_art@8354d2d
-- If building with custom toolchain like Linaro, it may be possible that kernel won't build right away with "unknown cpu architecture" error. It may require some additional fixes, such as this commit -> JustArchi/android_kernel_samsung_smdk4412@6965f2f for smdk4412 kernel. Eventually, just use Google's arm-eabi and Linaro's arm-linux-androideabi, this way you'll build kernel with Google's toolchain and rest of the ROM with Linaro.
-- In some cases stock kernel may not boot when built with GCC 4.8. It looks like this commit -> JustArchi/android_kernel_samsung_smdk4412@803cd15 may help, but don't commit it unless required.
-- Due to O3 optimization, code is significantly larger and may cause problems with oversized images especially for older devices. For example, I couldn't apply O3 because building TWRP recovery failed due to the fact that it didn't fit on recovery's block in my device. In such case you have two options. You may use a hack and manually increase size of the blocks in your BoardCommonConfig.mk, so compiler doesn't yell about that (but you obviously can't flash such images), or you need to go back either to O2 or Os, up to you.
-----------------------------------------------------------------------------------------------------------------
-Important changes:
-- Added missing Cortex-A9 CPU variant (-mcpu=cortex-a9)
-- Disabled global workarounds for Cortex-A8, they're applied only when you're targetting Cortex-A8 CPU now (-Wl,--fix-cortex-a8)
-- Bumped GCC version to 4.8 from default 4.7, as it performs much better than default 4.7 and gives excellent results
-- Optimized for speed yet more all instructions - ARM and THUMB (-O3)
-- Optimized for speed also parts which are compiled with Clang (-O3)
-- Turned off all debugging code (-DNDEBUG)
-- Performed loop invariant motion on trees. It also moved operands of conditions that are invariant out of the loop, so that we can use just trivial invariantness analysis in loop unswitching. The pass also includes store motion (-ftree-loop-im)
-- Created a canonical counter for number of iterations in loops for which determining number of iterations requires complicated analysis. Later optimizations then may determine the number easily (-ftree-loop-ivcanon)
-- Performed induction variable optimizations (strength reduction, induction variable merging and induction variable elimination) on trees (-fivopts)
-- Tried to reduce the number of symbolic address calculations by using shared “anchor” symbols to address nearby objects. This transformation can help to reduce the number of GOT entries and GOT accesses on some targets (-fsection-anchors)
-- Assumed that loop indices do not overflow, and that loops with nontrivial exit condition are not infinite. This enables a wider range of loop optimizations even if the loop optimizer itself cannot prove that these assumptions are valid (-funsafe-loop-optimizations)
-- Allowed the compiler to assume the strictest aliasing rules applicable to the language being compiled. For C (and C++), this activates optimizations based on the type of expressions. This is only applied to target ARM, nothing has been changed in this matter apart from more precision in warnings (-fstrict-aliasing)
-- Placed each function and data item into its own section, this is required for -Wl,--gc-sections (-ffunction-sections -fdata-sections)
-- Moved branches with loop invariant conditions out of the loop (-funswitch-loops)
-- Attempted to avoid false dependencies in scheduled code by making use of registers left over after register allocation. This optimization most benefits processors with lots of registers (-frename-registers)
-- Re-ran common subexpression elimination after loop optimizations are performed (-frerun-cse-after-loop)
-- Didn't keep the frame pointer in a register for functions that don't need one. This avoids the instructions to save, set up and restore frame pointers; it also makes an extra register available in many functions (-fomit-frame-pointer)
-- Made a redundant load elimination pass performed after reload. The purpose of this pass is to clean up redundant spilling (-fgcse-after-reload)
-- Ran a store motion pass after global common subexpression elimination. This pass attempts to move stores out of loops (-fgcse-sm)
-- Eliminated redundant loads that come after stores to the same memory location, both partial and full redundancies (-fgcse-las)
-- Constructed webs as commonly used for register allocation purposes and assigned each web individual pseudo register. This allows the register allocation pass to operate on pseudos directly, but also strengthens several other optimization passes, such as CSE, loop optimizer and trivial dead code remover (-fweb)
-- Performed tail duplication to enlarge superblock size. This transformation simplifies the control flow of the function allowing other optimizations to do a better job (-ftracer)
-- Optimized GNU linker, which significantly reduces launching time and memory usage. This is especially visible during booting process, which is a few seconds faster than usual (-Wl,-O1)
-- Applied special --as-needed flag to GNU linker. The flag tells the linker to link in the produced binary only the libraries containing symbols actually used by the binary itself. This not only improves startup times (as the loader does not have to load all the libraries for every step) but might avoid the full initialization of things, which we're not even physically able to use (-Wl,--as-needed)
-- Performed global optimizations that become possible when the linker resolves addressing in the program, such as relaxing address modes and synthesizing new instructions in the output object file (-Wl,--relax)
-- Sorted the common symbols by alignment in descending order. This is to prevent gaps between symbols due to alignment constraints (-Wl,--sort-common)
-- Enabled garbage collection of unused input sections, thanks to -ffunction-sections and -fdata-sections (-Wl,--gc-sections)
-----------------------------------------------------------------------------------------------------------------
-
-For more information, support, troubleshooting and discussion about my optimizations, please refer to my thread on XDA -> http://forum.xda-developers.com/showthread.php?t=2754997
----
- core/combo/TARGET_linux-arm.mk      | 50 ++++++++++++++++---------------------
- core/combo/arch/arm/armv7-a-neon.mk |  8 +++---
- core/combo/select.mk                | 19 +++++++++++---
- core/llvm_config.mk                 |  2 +-
- 4 files changed, 44 insertions(+), 35 deletions(-)
-
 diff --git a/core/combo/TARGET_linux-arm.mk b/core/combo/TARGET_linux-arm.mk
 index ece5b98..4c1fe6d 100644
 --- a/core/combo/TARGET_linux-arm.mk
@@ -240,7 +166,59 @@ index 18e689e..f5bb9aa 100644
  
  CLANG_CONFIG_UNKNOWN_CFLAGS := \
    -funswitch-loops
--- 
-1.9.3
 
-
+diff --git a/tools/releasetools/edify_generator.py b/tools/releasetools/edify_generator.py
+index 461ab44..0bde570 100644
+--- a/tools/releasetools/edify_generator.py
++++ b/tools/releasetools/edify_generator.py
+@@ -161,10 +161,14 @@ def Mount(self, mount_point):
+     fstab = self.info.get("fstab", None)
+     if fstab:
+       p = fstab[mount_point]
+-      self.script.append('mount("%s", "%s", "%s", "%s");' %
++      if p.fs_type == "f2fs":
++          self.script.append('run_program("mount", "-t", "auto", "%s", "%s");' %
++                             (p.device, p.mount_point))
++      else:
++          self.script.append('mount("%s", "%s", "%s", "%s");' %
+                          (p.fs_type, common.PARTITION_TYPES[p.fs_type],
+                           p.device, p.mount_point))
+-      self.mounts.add(p.mount_point)
++          self.mounts.add(p.mount_point)
+ 
+   def Unmount(self, mount_point):
+     """Unmount the partiiton with the given mount_point."""
+@@ -196,7 +200,11 @@ def FormatPartition(self, partition):
+     fstab = self.info.get("fstab", None)
+     if fstab:
+       p = fstab[partition]
+-      self.script.append('format("%s", "%s", "%s", "%s", "%s");' %
++      if p.fs_type == "f2fs":
++          self.script.append('run_program("/sbin/mkfs.f2fs", "%s");' %
++                             (p.device))
++      else:
++        self.script.append('format("%s", "%s", "%s", "%s", "%s");' %
+                          (p.fs_type, common.PARTITION_TYPES[p.fs_type],
+                           p.device, p.length, p.mount_point))
+ 
+@@ -324,3 +332,4 @@ def AddToZip(self, input_zip, output_zip, input_path=None):
+       data = open(os.path.join(input_path, "updater")).read()
+     common.ZipWriteStr(output_zip, "META-INF/com/google/android/update-binary",
+                        data, perms=0755)
++
+diff --git a/tools/releasetools/ota_from_target_files b/tools/releasetools/ota_from_target_files
+index 766909a..6b0b22e 100755
+--- a/tools/releasetools/ota_from_target_files
++++ b/tools/releasetools/ota_from_target_files
+@@ -521,6 +521,12 @@ else if get_stage("%(bcb_dev)s", "stage") == "3/3" then
+   if OPTIONS.wipe_user_data:
+     script.FormatPartition("/data")
+ 
++  script.Print("");
++  script.Print("Brought to you by:");
++  script.Print("NovaFusion");
++  script.Print("www.NovaFusion.pl");
++  script.Print("");
++
+   if "selinux_fc" in OPTIONS.info_dict:
+     WritePolicyConfig(OPTIONS.info_dict["selinux_fc"], output_zip)
