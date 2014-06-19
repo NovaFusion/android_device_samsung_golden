@@ -24,10 +24,12 @@ const char fstab_original_a[] =
 "# Android fstab file.\n"
 "#<src>                                       <mnt_point>          <type>  <mnt_flags>                                           <fs_mgr_flags>\n"
 "# The filesystem that contains the filesystem checker binary (typically /system) cannot\n"
-"# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK\n"
-"\n"
-"/dev/block/mmcblk0p22                       /system              ext4    ro                                                    wait\n"
+"# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK\n\n"
 ;
+
+//more fancy flags to f2fs system coming soon... do you know what flags should we apply to read-only f2fs filesystem?
+const char fstab_system_f2fs[] = "/dev/block/mmcblk0p22                       /system              f2fs    ro                                                    wait\n";
+const char fstab_system_ext4[] = "/dev/block/mmcblk0p22                       /system              ext4    ro                                                    wait\n";
 
 const char fstab_cache_f2fs[] = "/dev/block/mmcblk0p23                       /cache               f2fs    noatime,nosuid,nodev,discard,inline_xattr             wait\n";
 const char fstab_cache_ext4[] = "/dev/block/mmcblk0p23                       /cache               ext4    noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait\n";

@@ -40,6 +40,7 @@ void write_dynamic(const char *device, const char *if_f2fs, const char *if_ext4)
 
 void write_fstab() {
     write_static(fstab_original_a);
+    write_dynamic(BLOCK_SYSTEM, fstab_system_f2fs, fstab_system_ext4);
     write_dynamic(BLOCK_CACHE, fstab_cache_f2fs, fstab_cache_ext4);
     write_static(fstab_original_b);
     write_dynamic(BLOCK_DATA, fstab_data_f2fs, fstab_data_ext4);
