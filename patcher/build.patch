@@ -177,7 +177,7 @@ index 461ab44..0bde570 100644
        p = fstab[mount_point]
 -      self.script.append('mount("%s", "%s", "%s", "%s");' %
 +      if p.fs_type == "f2fs":
-+          self.script.append('run_program("mount", "-t", "auto", "%s", "%s");' %
++          self.script.append('run_program("/sbin/mount", "-t", "auto", "%s", "%s");' %
 +                             (p.device, p.mount_point))
 +      else:
 +          self.script.append('mount("%s", "%s", "%s", "%s");' %
