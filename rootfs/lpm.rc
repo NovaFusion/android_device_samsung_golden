@@ -10,7 +10,7 @@ on init
     mkdir /mnt/.lfs 0755 root root
 
 on fs
-    mount ext4 /dev/block/mmcblk0p22 /system wait ro 
+    mount f2fs /dev/block/mmcblk0p22 /system wait ro 
 
 on post-fs
     insmod /system/lib/modules/j4fs.ko
