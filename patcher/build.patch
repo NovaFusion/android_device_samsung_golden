@@ -183,7 +183,8 @@ index 461ab44..0bde570 100644
 +          self.script.append('mount("%s", "%s", "%s", "%s");' %
                           (p.fs_type, common.PARTITION_TYPES[p.fs_type],
                            p.device, p.mount_point))
- 
+       self.mounts.add(p.mount_point)
+
    def Unmount(self, mount_point):
      """Unmount the partiiton with the given mount_point."""
 @@ -196,7 +200,11 @@ def FormatPartition(self, partition):
