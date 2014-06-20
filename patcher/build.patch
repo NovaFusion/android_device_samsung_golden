@@ -232,7 +232,7 @@ index 766909a..37e2305
 +  script.Print("");
 +
    if OPTIONS.backuptool:
-+    script.Print("Creating backup...."");
++    script.Print("Creating backup....");
      script.Mount("/system")
      script.RunBackup("backup")
      script.Unmount("/system")
@@ -246,7 +246,7 @@ index 766909a..37e2305
    if "selinux_fc" in OPTIONS.info_dict:
      WritePolicyConfig(OPTIONS.info_dict["selinux_fc"], output_zip)
  
-+  script.Print("Formatting /system...."");
++  script.Print("Formatting /system....");
    script.FormatPartition("/system")
 +  script.Print("Mounting /system....");
    script.Mount("/system")
