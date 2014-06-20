@@ -183,8 +183,6 @@ index 461ab44..0bde570 100644
 +          self.script.append('mount("%s", "%s", "%s", "%s");' %
                           (p.fs_type, common.PARTITION_TYPES[p.fs_type],
                            p.device, p.mount_point))
--      self.mounts.add(p.mount_point)
-+          self.mounts.add(p.mount_point)
  
    def Unmount(self, mount_point):
      """Unmount the partiiton with the given mount_point."""
@@ -225,11 +223,11 @@ index 766909a..37e2305
  
    device_specific.FullOTA_InstallBegin()
  
-+  script.Print("");
++  script.Print(" ");
 +  script.Print("Brought to you by:");
 +  script.Print("NovaFusion");
 +  script.Print("www.NovaFusion.pl");
-+  script.Print("");
++  script.Print(" ");
 +
    if OPTIONS.backuptool:
 +    script.Print("Creating backup....");
@@ -286,11 +284,11 @@ index 766909a..37e2305
    script.UnmountAll()
  
 +  script.Print("Done!");
-+  script.Print("");
++  script.Print(" ");
 +  script.Print("Brought to you by:");
 +  script.Print("NovaFusion");
 +  script.Print("www.NovaFusion.pl");
-+  script.Print("");
++  script.Print(" ");
 +
    if OPTIONS.two_step:
      script.AppendExtra("""
