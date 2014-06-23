@@ -37,7 +37,7 @@ PRODUCT_PACKAGES += \
 
 # Prebuilt kernel
 PRODUCT_COPY_FILES += \
-    $(TARGET_PREBUILT_KERNEL):kernel
+    device/samsung/golden/rootfs/kernel:kernel
 
 # Initial ramdisk
 PRODUCT_COPY_FILES += \
