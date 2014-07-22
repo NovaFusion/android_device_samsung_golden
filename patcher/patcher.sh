@@ -6,10 +6,6 @@ cd $PATCHERDIR
 cd ../../../..
 BASEDIR=$(pwd)
 
-echo -e "\n\e[0;31mPatching RECOVERY:\e[0;34m"
-cd $BASEDIR/bootable/recovery
-patch -p1 -N -i$PATCHERDIR/recovery.patch
-
 echo -e "\n\e[0;31mPatching AV:\e[0;34m"
 cd $BASEDIR/frameworks/av
 patch -p1 -N -i$PATCHERDIR/av.patch
