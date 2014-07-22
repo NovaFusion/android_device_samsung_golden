@@ -1,13 +1,12 @@
 diff --git a/camera/CameraParameters.cpp b/camera/CameraParameters.cpp
-index 09e0e93..8b06b8d 100644
+index 09e0e93..7dd006c 100644
 --- a/camera/CameraParameters.cpp
 +++ b/camera/CameraParameters.cpp
-@@ -328,6 +328,13 @@ const char CameraParameters::SCENE_MODE_FIREWORKS[] = "fireworks";
+@@ -328,6 +328,12 @@ const char CameraParameters::SCENE_MODE_FIREWORKS[] = "fireworks";
  const char CameraParameters::SCENE_MODE_SPORTS[] = "sports";
  const char CameraParameters::SCENE_MODE_PARTY[] = "party";
  const char CameraParameters::SCENE_MODE_CANDLELIGHT[] = "candlelight";
 +#ifdef STE_SAMSUNG_HARDWARE
-+const char CameraParameters::SCENE_MODE_AQUA[] = "aqua";
 +const char CameraParameters::SCENE_MODE_BACKLIGHT[] = "backlight";
 +const char CameraParameters::SCENE_MODE_DUSKDAWN[] = "duskdawn";
 +const char CameraParameters::SCENE_MODE_FALLCOLOR[] = "fallcolor";
@@ -16,22 +15,17 @@ index 09e0e93..8b06b8d 100644
  #ifdef QCOM_HARDWARE
  #ifdef SAMSUNG_CAMERA_LEGACY
  const char CameraParameters::SCENE_MODE_BACKLIGHT[] = "back-light";
-@@ -354,6 +361,14 @@ const char CameraParameters::PIXEL_FORMAT_YUV420SP[] = "yuv420sp";
+@@ -354,6 +360,9 @@ const char CameraParameters::PIXEL_FORMAT_YUV420SP[] = "yuv420sp";
  #ifdef QCOM_HARDWARE
  const char CameraParameters::PIXEL_FORMAT_YUV420SP_ADRENO[] = "yuv420sp-adreno";
  #endif
 +#ifdef STE_HARDWARE
-+const char CameraParameters::PIXEL_FORMAT_YUV420SPNV12[] = "yuv420spnv12";
 +const char CameraParameters::PIXEL_FORMAT_YUV420MB[] = "yuv420mb";
-+const char CameraParameters::PIXEL_FORMAT_YVU422SP[] = "yvu422sp";
-+const char CameraParameters::PIXEL_FORMAT_YVU422P[] = "yvu422p";
-+const char CameraParameters::PIXEL_FORMAT_YVU420SP[] = "yvu420sp";
-+const char CameraParameters::PIXEL_FORMAT_YVU420P[]  = "yvu420p";
 +#endif
  const char CameraParameters::PIXEL_FORMAT_YUV422I[] = "yuv422i-yuyv";
  const char CameraParameters::PIXEL_FORMAT_YUV420P[]  = "yuv420p";
  const char CameraParameters::PIXEL_FORMAT_RGB565[] = "rgb565";
-@@ -518,6 +533,12 @@ void CameraParameters::setOrientation(int orientation)
+@@ -518,6 +527,12 @@ void CameraParameters::setOrientation(int orientation)
  const char CameraParameters::LIGHTFX_LOWLIGHT[] = "low-light";
  const char CameraParameters::LIGHTFX_HDR[] = "high-dynamic-range";
  
@@ -45,15 +39,14 @@ index 09e0e93..8b06b8d 100644
                  : mMap()
  {
 diff --git a/include/camera/CameraParameters.h b/include/camera/CameraParameters.h
-index 4a5ec8f..f5585b0 100644
+index 4a5ec8f..105f180 100644
 --- a/include/camera/CameraParameters.h
 +++ b/include/camera/CameraParameters.h
-@@ -843,6 +843,13 @@ public:
+@@ -843,6 +843,12 @@ public:
      static const char SCENE_MODE_SPORTS[];
      static const char SCENE_MODE_PARTY[];
      static const char SCENE_MODE_CANDLELIGHT[];
 +#ifdef STE_SAMSUNG_HARDWARE
-+    static const char SCENE_MODE_AQUA[];
 +    static const char SCENE_MODE_BACKLIGHT[];
 +    static const char SCENE_MODE_DUSKDAWN[];
 +    static const char SCENE_MODE_FALLCOLOR[];
@@ -62,22 +55,17 @@ index 4a5ec8f..f5585b0 100644
  #ifdef QCOM_HARDWARE
      static const char SCENE_MODE_BACKLIGHT[];
      static const char SCENE_MODE_FLOWERS[];
-@@ -867,6 +874,14 @@ public:
+@@ -867,6 +873,9 @@ public:
  #ifdef QCOM_HARDWARE
      static const char PIXEL_FORMAT_YUV420SP_ADRENO[]; // ADRENO
  #endif
 +#ifdef STE_HARDWARE
-+    static const char PIXEL_FORMAT_YUV420SPNV12[]; // NV12
-+    static const char PIXEL_FORMAT_YVU422SP[];
-+    static const char PIXEL_FORMAT_YVU422P[];
-+    static const char PIXEL_FORMAT_YVU420SP[];
-+    static const char PIXEL_FORMAT_YVU420P[];
 +    static const char PIXEL_FORMAT_YUV420MB[];
 +#endif
      static const char PIXEL_FORMAT_YUV422I[]; // YUY2
      static const char PIXEL_FORMAT_YUV420P[]; // YV12
      static const char PIXEL_FORMAT_RGB565[];
-@@ -946,6 +961,12 @@ public:
+@@ -946,6 +955,12 @@ public:
      // High-dynamic range mode
      static const char LIGHTFX_HDR[];
  
@@ -107,10 +95,10 @@ index 85ba920..014fc7a 100644
              const BitmapParams &src, const BitmapParams &dst);
  
 diff --git a/include/media/stagefright/OMXCodec.h b/include/media/stagefright/OMXCodec.h
-index 5df0874..3d4199a 100644
+index b392042..ba8c7b0 100644
 --- a/include/media/stagefright/OMXCodec.h
 +++ b/include/media/stagefright/OMXCodec.h
-@@ -86,6 +86,10 @@ struct OMXCodec : public MediaSource,
+@@ -89,6 +89,10 @@ struct OMXCodec : public MediaSource,
      // from MediaBufferObserver
      virtual void signalBufferReturned(MediaBuffer *buffer);
  
@@ -121,7 +109,7 @@ index 5df0874..3d4199a 100644
      enum Quirks {
          kNeedsFlushBeforeDisable              = 1,
          kWantsNALFragments                    = 2,
-@@ -107,6 +111,9 @@ struct OMXCodec : public MediaSource,
+@@ -110,6 +114,9 @@ struct OMXCodec : public MediaSource,
  #ifdef QCOM_HARDWARE
          kRequiresWMAProComponent              = 0x40000000, //2^30
  #endif
@@ -132,10 +120,10 @@ index 5df0874..3d4199a 100644
  
      struct CodecNameAndQuirks {
 diff --git a/media/libstagefright/ACodec.cpp b/media/libstagefright/ACodec.cpp
-index e09090a..54c3b31 100755
+index a3d54a4..0115475 100755
 --- a/media/libstagefright/ACodec.cpp
 +++ b/media/libstagefright/ACodec.cpp
-@@ -601,8 +601,12 @@ status_t ACodec::configureOutputBuffersFromNativeWindow(
+@@ -602,8 +602,12 @@ status_t ACodec::configureOutputBuffersFromNativeWindow(
              mNativeWindow.get(),
              def.format.video.nFrameWidth,
              def.format.video.nFrameHeight,
@@ -189,7 +177,7 @@ index 295c0f5..1ba6bc8 100644
  
  #ifdef QCOM_HARDWARE
 diff --git a/media/libstagefright/OMXCodec.cpp b/media/libstagefright/OMXCodec.cpp
-index 5e6dc1d..55e5a12 100644
+index 8d24187..8f169c7 100644
 --- a/media/libstagefright/OMXCodec.cpp
 +++ b/media/libstagefright/OMXCodec.cpp
 @@ -275,6 +275,20 @@ static int CompareSoftwareCodecsFirst(
@@ -200,9 +188,9 @@ index 5e6dc1d..55e5a12 100644
 +uint32_t OMXCodec::OmxToHALFormat(OMX_COLOR_FORMATTYPE omxValue) {
 +    switch (omxValue) {
 +        case OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB:
-+            return HAL_PIXEL_FORMAT_YCBCR42XMBN;
++            return 0x0E /*HAL_PIXEL_FORMAT_YCBCR42XMBN*/;
 +        case OMX_COLOR_FormatYUV420Planar:
-+            return HAL_PIXEL_FORMAT_YCbCr_420_P;
++            return 0x13 /*HAL_PIXEL_FORMAT_YCbCr_420_P*/;
 +        default:
 +            ALOGI("Unknown OMX pixel format (0x%X), passing it on unchanged", omxValue);
 +            return omxValue;
@@ -226,7 +214,7 @@ index 5e6dc1d..55e5a12 100644
  
  #ifdef QCOM_HARDWARE
      quirks |= ExtendedCodec::getComponentQuirks(list,index);
-@@ -1051,6 +1071,9 @@ static size_t getFrameSize(
+@@ -1098,6 +1118,9 @@ static size_t getFrameSize(
          case OMX_COLOR_FormatYUV420Planar:
          case OMX_COLOR_FormatYUV420SemiPlanar:
          case OMX_TI_COLOR_FormatYUV420PackedSemiPlanar:
@@ -236,7 +224,7 @@ index 5e6dc1d..55e5a12 100644
          /*
          * FIXME: For the Opaque color format, the frame size does not
          * need to be (w*h*3)/2. It just needs to
-@@ -1966,6 +1989,16 @@ status_t OMXCodec::init() {
+@@ -2017,6 +2040,16 @@ status_t OMXCodec::init() {
      CHECK_EQ((int)mState, (int)LOADED);
  
      status_t err;
@@ -253,7 +241,7 @@ index 5e6dc1d..55e5a12 100644
      if (!(mQuirks & kRequiresLoadedToIdleAfterAllocation)) {
          err = mOMX->sendCommand(mNode, OMX_CommandStateSet, OMX_StateIdle);
          CHECK_EQ(err, (status_t)OK);
-@@ -2025,7 +2058,12 @@ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
+@@ -2082,7 +2115,12 @@ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
      }
  
      status_t err = OK;
@@ -266,7 +254,7 @@ index 5e6dc1d..55e5a12 100644
              && portIndex == kPortIndexInput) {
          err = mOMX->storeMetaDataInBuffers(mNode, kPortIndexInput, OMX_TRUE);
          if (err != OK) {
-@@ -2226,7 +2264,11 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
+@@ -2283,7 +2321,11 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
              mNativeWindow.get(),
              def.format.video.nFrameWidth,
              def.format.video.nFrameHeight,

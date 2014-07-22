@@ -1,13 +1,3 @@
-From b8d5faef4aab4a30a3b2f67cce69b9a011ba1816 Mon Sep 17 00:00:00 2001
-From: Marcin Chojnacki <marcinch7@gmail.com>
-Date: Thu, 17 Apr 2014 20:09:04 +0200
-Subject: [PATCH] novafusion: hotword source fix
-
-Change-Id: I6dabfb2092aa6675e59904f777979fe920d6bd3e
----
- core/jni/android_media_AudioRecord.cpp | 4 ++++
- 1 file changed, 4 insertions(+)
-
 diff --git a/core/jni/android_media_AudioRecord.cpp b/core/jni/android_media_AudioRecord.cpp
 index c9882c4..ea49fbb 100644
 --- a/core/jni/android_media_AudioRecord.cpp
@@ -23,6 +13,3 @@ index c9882c4..ea49fbb 100644
      if (!audio_is_input_channel(channelMask)) {
          ALOGE("Error creating AudioRecord: channel mask %#x is not valid.", channelMask);
          return AUDIORECORD_ERROR_SETUP_INVALIDCHANNELMASK;
--- 
-1.8.5.3
-

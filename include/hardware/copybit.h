@@ -35,26 +35,6 @@ __BEGIN_DECLS
  */
 #define COPYBIT_HARDWARE_COPYBIT0 "copybit0"
 
-/* supported pixel-formats. these must be compatible with
- * graphics/PixelFormat.java, ui/PixelFormat.h, pixelflinger/format.h
- */
-enum {
-    COPYBIT_FORMAT_RGBA_8888    = HAL_PIXEL_FORMAT_RGBA_8888,
-    COPYBIT_FORMAT_RGBX_8888    = HAL_PIXEL_FORMAT_RGBX_8888,
-    COPYBIT_FORMAT_RGB_888      = HAL_PIXEL_FORMAT_RGB_888,
-    COPYBIT_FORMAT_RGB_565      = HAL_PIXEL_FORMAT_RGB_565,
-    COPYBIT_FORMAT_BGRA_8888    = HAL_PIXEL_FORMAT_BGRA_8888,
-    COPYBIT_FORMAT_RGBA_5551    = HAL_PIXEL_FORMAT_RGBA_5551,
-    COPYBIT_FORMAT_RGBA_4444    = HAL_PIXEL_FORMAT_RGBA_4444,
-    COPYBIT_FORMAT_YCbCr_422_SP = HAL_PIXEL_FORMAT_YCbCr_422_SP,
-    COPYBIT_FORMAT_YCbCr_420_SP = HAL_PIXEL_FORMAT_YCbCr_420_SP,
-    COPYBIT_FORMAT_YCbCr_420_P  = HAL_PIXEL_FORMAT_YCbCr_420_P,
-    /* STE: Added Support for YUV42XMBN, required for Copybit CC acceleration */
-    COPYBIT_FORMAT_YCBCR42XMBN  = HAL_PIXEL_FORMAT_YCBCR42XMBN,
-    /* STE: Added for YCbCr422R -> RGB888 use-case */
-    COPYBIT_FORMAT_YCbCr_422_I  = HAL_PIXEL_FORMAT_YCbCr_422_I,
-};
-
 /* name for copybit_set_parameter */
 enum {
     /* rotation of the source image in degrees (0 to 359) */
@@ -68,20 +48,6 @@ enum {
     /* blurs the copied bitmap. The amount of blurring cannot be changed
      * at this time. */
     COPYBIT_BLUR            = 5
-};
-
-/* values for copybit_set_parameter(COPYBIT_TRANSFORM) */
-enum {
-    /* flip source image horizontally */
-    COPYBIT_TRANSFORM_FLIP_H    = HAL_TRANSFORM_FLIP_H,
-    /* flip source image vertically */
-    COPYBIT_TRANSFORM_FLIP_V    = HAL_TRANSFORM_FLIP_V,
-    /* rotate source image 90 degres */
-    COPYBIT_TRANSFORM_ROT_90    = HAL_TRANSFORM_ROT_90,
-    /* rotate source image 180 degres */
-    COPYBIT_TRANSFORM_ROT_180   = HAL_TRANSFORM_ROT_180,
-    /* rotate source image 270 degres */
-    COPYBIT_TRANSFORM_ROT_270   = HAL_TRANSFORM_ROT_270,
 };
 
 /* enable/disable value copybit_set_parameter */

@@ -1,14 +1,3 @@
-From 6a450e682a254ce478fb8e83ca3b8752eecef248 Mon Sep 17 00:00:00 2001
-From: Marcin Chojnacki <marcinch7@gmail.com>
-Date: Thu, 17 Apr 2014 20:04:25 +0200
-Subject: [PATCH] novafusion: reset audio stream
-
-Change-Id: I2a9097a259b7b60bef8023fdff75f90b55da483c
----
- src/com/android/phone/AudioRouter.java |  8 ++++++++
- src/com/android/phone/PhoneUtils.java  | 32 ++++++++++++++++++++++++++++++++
- 2 files changed, 40 insertions(+)
-
 diff --git a/src/com/android/phone/AudioRouter.java b/src/com/android/phone/AudioRouter.java
 index 3c8e9d3..4e911cd 100644
 --- a/src/com/android/phone/AudioRouter.java
@@ -36,10 +25,10 @@ index 3c8e9d3..4e911cd 100644
  
      /**
 diff --git a/src/com/android/phone/PhoneUtils.java b/src/com/android/phone/PhoneUtils.java
-index 1477a2a..d48202c 100644
+index 1f9ea00..eeef0ba 100644
 --- a/src/com/android/phone/PhoneUtils.java
 +++ b/src/com/android/phone/PhoneUtils.java
-@@ -2195,6 +2195,38 @@ public class PhoneUtils {
+@@ -2256,6 +2256,38 @@ public class PhoneUtils {
          }
      }
  
@@ -78,6 +67,3 @@ index 1477a2a..d48202c 100644
      static boolean isInEmergencyCall(CallManager cm) {
          for (Connection cn : cm.getActiveFgCall().getConnections()) {
              if (PhoneNumberUtils.isLocalEmergencyNumber(cn.getAddress(),
--- 
-1.8.5.3
-

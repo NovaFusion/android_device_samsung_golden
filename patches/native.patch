@@ -282,10 +282,20 @@ index 02f3c8b..9861cdb 100644
      
      mutable Mutex mutex;
 diff --git a/include/ui/GraphicBuffer.h b/include/ui/GraphicBuffer.h
-index 7f8cde6..16994bd 100644
+index 7f8cde6..d0dc084 100644
 --- a/include/ui/GraphicBuffer.h
 +++ b/include/ui/GraphicBuffer.h
-@@ -38,10 +38,14 @@ class GraphicBufferMapper;
+@@ -24,7 +24,9 @@
+ #include <ui/PixelFormat.h>
+ #include <ui/Rect.h>
+ #include <utils/Flattenable.h>
++#ifndef STE_HARDWARE
+ #include <utils/RefBase.h>
++#endif
+ 
+ 
+ struct ANativeWindowBuffer;
+@@ -38,10 +40,14 @@ class GraphicBufferMapper;
  // ===========================================================================
  
  class GraphicBuffer
@@ -422,7 +432,7 @@ index 80746e4..018ed28 100644
  
  # Executed only on QCOM BSPs
 diff --git a/libs/gui/GLConsumer.cpp b/libs/gui/GLConsumer.cpp
-index de83a20..9a0d072 100644
+index de83a20..ab2976b 100644
 --- a/libs/gui/GLConsumer.cpp
 +++ b/libs/gui/GLConsumer.cpp
 @@ -133,6 +133,9 @@ GLConsumer::GLConsumer(const sp<IGraphicBufferConsumer>& bq, uint32_t tex,
@@ -494,8 +504,8 @@ index de83a20..9a0d072 100644
      // re-allocated.
 +#ifdef STE_HARDWARE
 +    sp<GraphicBuffer> textureBuffer;
-+    if (mSlots[buf].mGraphicBuffer->getPixelFormat() == HAL_PIXEL_FORMAT_YCBCR42XMBN
-+     || mSlots[buf].mGraphicBuffer->getPixelFormat() == HAL_PIXEL_FORMAT_YCbCr_420_P) {
++    if (mSlots[buf].mGraphicBuffer->getPixelFormat() == 0x0E /*HAL_PIXEL_FORMAT_YCBCR42XMBN*/
++     || mSlots[buf].mGraphicBuffer->getPixelFormat() == 0x13 /*HAL_PIXEL_FORMAT_YCbCr_420_P*/) {
 +        /* deallocate image each time .... */
 +        if (mEglSlots[buf].mEglImage != EGL_NO_IMAGE_KHR) {
 +            eglDestroyImageKHR(mEglDisplay, mEglSlots[buf].mEglImage);
@@ -653,23 +663,8 @@ index 12c77b8..989519f 100644
          mBufferHead = mNumBuffers-1;
  
          /*
-diff --git a/libs/ui/PixelFormat.cpp b/libs/ui/PixelFormat.cpp
-index 6517c8c..6411a5e 100644
---- a/libs/ui/PixelFormat.cpp
-+++ b/libs/ui/PixelFormat.cpp
-@@ -90,6 +90,10 @@ status_t getPixelFormatInfo(PixelFormat format, PixelFormatInfo* info)
-     case HAL_PIXEL_FORMAT_YCbCr_422_I:
-         info->bitsPerPixel = 16;
-         goto done;
-+#ifdef STE_HARDWARE
-+    case HAL_PIXEL_FORMAT_YCbCr_420_P:
-+    case HAL_PIXEL_FORMAT_YCBCR42XMBN:
-+#endif
-     case HAL_PIXEL_FORMAT_YCrCb_420_SP:
-     case HAL_PIXEL_FORMAT_YV12:
-         info->bitsPerPixel = 12;
 diff --git a/services/surfaceflinger/DisplayDevice.cpp b/services/surfaceflinger/DisplayDevice.cpp
-index f56a1c5..be9f709 100755
+index 5f765bd..6f831d7 100755
 --- a/services/surfaceflinger/DisplayDevice.cpp
 +++ b/services/surfaceflinger/DisplayDevice.cpp
 @@ -26,6 +26,9 @@

@@ -1,17 +1,3 @@
-From 708b938cb48a2695919dc6383f7192c66d4d3f94 Mon Sep 17 00:00:00 2001
-From: Marcin Chojnacki <marcinch7@gmail.com>
-Date: Thu, 17 Apr 2014 20:02:25 +0200
-Subject: [PATCH] novafusion: st-ericsson core patch
-
-Change-Id: Iaa36cffd979fef0d632ce16110526110df7a2c79
----
- include/utils/Flattenable.h | 31 +++++++------------------------
- init/init.c                 | 21 +++++++++++++++++++++
- libutils/Android.mk         |  1 +
- libutils/Flattenable.cpp    | 24 ++++++++++++++++++++++++
- 4 files changed, 53 insertions(+), 24 deletions(-)
- create mode 100644 libutils/Flattenable.cpp
-
 diff --git a/include/utils/Flattenable.h b/include/utils/Flattenable.h
 index 882a8b2..6d0fdaf 100644
 --- a/include/utils/Flattenable.h
@@ -74,7 +60,7 @@ index 882a8b2..6d0fdaf 100644
  /*
   * LightFlattenable is a protocol allowing object to serialize themselves out
 diff --git a/init/init.c b/init/init.c
-index 1cb9194..4a4d281 100644
+index 3dd6b3d..96bb09a 100644
 --- a/init/init.c
 +++ b/init/init.c
 @@ -79,6 +79,13 @@ static int   bootchart_count;
@@ -115,7 +101,7 @@ index 1cb9194..4a4d281 100644
      } else if (!strcmp(name,BOARD_CHARGING_CMDLINE_NAME)) {
          strlcpy(battchg_pause, value, sizeof(battchg_pause));
      } else if (!strncmp(name, "androidboot.", 12) && name_len > 12) {
-@@ -1062,6 +1079,9 @@ int audit_callback(void *data, security_class_t cls, char *buf, size_t len)
+@@ -1061,6 +1078,9 @@ int audit_callback(void *data, security_class_t cls, char *buf, size_t len)
  
  static int charging_mode_booting(void)
  {
@@ -125,7 +111,7 @@ index 1cb9194..4a4d281 100644
  #ifndef BOARD_CHARGING_MODE_BOOTING_LPM
      return 0;
  #else
-@@ -1077,6 +1097,7 @@ static int charging_mode_booting(void)
+@@ -1076,6 +1096,7 @@ static int charging_mode_booting(void)
      close(f);
      return ('1' == cmb);
  #endif
@@ -175,6 +161,3 @@ index 0000000..1f2ffaa
 +}
 +
 +}; // namespace android
--- 
-1.8.5.3
-
