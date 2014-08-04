@@ -444,6 +444,9 @@ on boot
     mkdir /data/nfc 0770 nfc nfc
     mkdir /data/nfc/param 0770 nfc nfc
 
+    # Probe Pocierak kernel module
+    insmod /system/lib/modules/pocierak.ko
+
     # Pocierak NFC wrapper permissions
     chown nfc nfc /sys/kernel/pocierak/init_deinit
     chmod 0200 /sys/kernel/pocierak/init_deinit
