@@ -440,6 +440,10 @@ on boot
     chown system system /sys/class/power_supply/battery/batt_vol_adc_cal
     chown radio system /sys/class/power_supply/battery/fg_reset_soc
 
+    # NFC local data and nfcee xml storage
+    mkdir /data/nfc 0770 nfc nfc
+    mkdir /data/nfc/param 0770 nfc nfc
+
     # Modem
     class_start modem
     class_start default

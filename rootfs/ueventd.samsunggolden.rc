@@ -64,5 +64,12 @@
 /dev/db8500-modem-trace 0600 root root
 /dev/dbx500_mloader_fw 0600 root root
 
+# Pocierak NFC wrapper
+/sys/kernel/pocierak init_deinit 0200 nfc nfc
+/sys/kernel/pocierak set_pwr     0200 nfc nfc
+/sys/kernel/pocierak res_ready   0400 nfc nfc
+/sys/kernel/pocierak recv_rsp    0600 nfc nfc
+/sys/kernel/pocierak send_cmd    0200 nfc nfc
+
 # param
 /dev/block/mmcblk0p19 0660 system system
