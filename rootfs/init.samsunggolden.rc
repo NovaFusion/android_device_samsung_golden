@@ -444,6 +444,18 @@ on boot
     mkdir /data/nfc 0770 nfc nfc
     mkdir /data/nfc/param 0770 nfc nfc
 
+    # Pocierak NFC wrapper permissions
+    chown nfc nfc /sys/kernel/pocierak/init_deinit
+    chmod 0200 /sys/kernel/pocierak/init_deinit
+    chown nfc nfc /sys/kernel/pocierak/set_pwr
+    chmod 0200 /sys/kernel/pocierak/set_pwr
+    chown nfc nfc /sys/kernel/pocierak/res_ready
+    chmod 0400 /sys/kernel/pocierak/res_ready
+    chown nfc nfc /sys/kernel/pocierak/recv_rsp
+    chmod 0600 /sys/kernel/pocierak/recv_rsp
+    chown nfc nfc /sys/kernel/pocierak/send_cmd
+    chmod 0200 /sys/kernel/pocierak/send_cmd
+
     # Modem
     class_start modem
     class_start default
