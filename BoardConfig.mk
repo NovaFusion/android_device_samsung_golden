@@ -82,6 +82,10 @@ WIFI_DRIVER_MODULE_ARG := "firmware_path=/system/etc/wifi/bcmdhd_sta.bin nvram_p
 WIFI_DRIVER_MODULE_AP_ARG := "firmware_path=/system/etc/wifi/bcmdhd_apsta.bin nvram_path=/system/etc/wifi/nvram_net.txt"
 BOARD_NO_APSME_ATTR := true
 
+# NFC
+BOARD_NFC_CHIPSET := pn547
+BOARD_NFC_HAL_SUFFIX := montblanc
+
 # Misc
 BOARD_RIL_CLASS := ../../../device/samsung/golden/ril/
 TARGET_SPECIFIC_HEADER_PATH := device/samsung/golden/include

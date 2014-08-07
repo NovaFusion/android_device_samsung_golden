@@ -33,6 +33,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     NfcNci \
     Tag \
+    nfc_nci.montblanc \
     com.android.nfc_extras
 
 # Misc packages

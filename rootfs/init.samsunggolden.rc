@@ -444,18 +444,6 @@ on boot
     mkdir /data/nfc 0770 nfc nfc
     mkdir /data/nfc/param 0770 nfc nfc
 
-    # NFC driver permissions
-    chown nfc nfc /sys/bus/i2c/drivers/pn547/9-002b/init_deinit
-    chmod 0200 /sys/bus/i2c/drivers/pn547/9-002b/init_deinit
-    chown nfc nfc /sys/bus/i2c/drivers/pn547/9-002b/set_pwr
-    chmod 0200 /sys/bus/i2c/drivers/pn547/9-002b/set_pwr
-    chown nfc nfc /sys/bus/i2c/drivers/pn547/9-002b/res_ready
-    chmod 0400 /sys/bus/i2c/drivers/pn547/9-002b/res_ready
-    chown nfc nfc /sys/bus/i2c/drivers/pn547/9-002b/recv_rsp
-    chmod 0600 /sys/bus/i2c/drivers/pn547/9-002b/recv_rsp
-    chown nfc nfc /sys/bus/i2c/drivers/pn547/9-002b/send_cmd
-    chmod 0200 /sys/bus/i2c/drivers/pn547/9-002b/send_cmd
-
     # Modem
     class_start modem
     class_start default
