@@ -64,5 +64,8 @@
 /dev/db8500-modem-trace 0600 root root
 /dev/dbx500_mloader_fw 0600 root root
 
+# NFC
+/dev/pn544 0600 nfc nfc
+
 # param
 /dev/block/mmcblk0p19 0660 system system
