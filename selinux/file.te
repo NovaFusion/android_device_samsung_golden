@@ -1,0 +1,1 @@
+type sysfs_device_writable, fs_type, sysfs_type;

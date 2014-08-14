@@ -1,0 +1,4 @@
+allow system init:unix_dgram_socket sendto;
+allow system wpa_socket:unix_dgram_socket sendto;
+
+allow system_app sysfs_device_writable:file rw_file_perms;

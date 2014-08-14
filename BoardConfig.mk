@@ -53,6 +53,11 @@ ARM_EABI_TOOLCHAIN := $(ANDROID_BUILD_TOP)/prebuilts/gcc/linux-x86/arm/novatp/bi
 #TARGET_KERNEL_CONFIG := cm_golden_defconfig
 #TARGET_USE_ST_ERICSSON_KERNEL := true
 
+# Selinux support
+HAVE_SELINUX := true
+BOARD_SEPOLICY_DIRS += device/samsung/golden/selinux
+BOARD_SEPOLICY_UNION += file_contexts
+
 # Graphics
 USE_OPENGL_RENDERER := true
 TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK := true

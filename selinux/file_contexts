@@ -1,0 +1,2 @@
+#system
+/dev/block/mmcblk0p19                            u:object_r:block_device:s0

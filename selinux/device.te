@@ -1,0 +1,2 @@
+type bluetooth_device, dev_type;
+type mfc_device, dev_type;
