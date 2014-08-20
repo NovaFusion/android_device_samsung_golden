@@ -99,3 +99,6 @@ BOARD_RIL_CLASS := ../../../device/samsung/golden/ril/
 TARGET_SPECIFIC_HEADER_PATH := device/samsung/golden/include
 TARGET_RECOVERY_FSTAB := device/samsung/golden/rootfs/fstab.samsunggolden
 RECOVERY_FSTAB_VERSION := 2
+
+# AROMA support
+USE_SET_METADATA := false
