@@ -459,11 +459,11 @@ service fuse_usbdisk0 /system/bin/sdcard -u 1023 -g 1023 /mnt/media_rw/usbdisk0 
     class late_start
     disabled
 
-# bugreport is triggered by the VOLUME-DOWN and VOLUME-UP keys
+# novalog is triggered by the 3 key combo
 service novalog /system/bin/novalog
     disabled
     oneshot
-    keycodes 115 114
+    keycodes 114 115 116
 
 # Crash Safe Parameter Storage Area, serving production parameter requests from clients.
 # Configuration is read from file "/etc/cspsa.conf" and each found area spawns a CSPSA server
