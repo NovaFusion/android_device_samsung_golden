@@ -16,14 +16,19 @@
 # limitations under the License.
 #
 
+#
 # Functions definitions
+#
 function log {
     date +[%T] | tr -d "\n"
     echo " $1"
 }
 
 function vibrate {
-    echo 250 > /sys/devices/virtual/timed_output/vibrator/enable
+    if [ $LOGFILE != $SCRNAME.tgz ]
+    then
+        echo 250 > /sys/devices/virtual/timed_output/vibrator/enable
+    fi
 }
 
 function cleanup {
@@ -32,26 +37,49 @@ function cleanup {
     rm -rf $TEMPDIR
 }
 
-# Check arguments
+#
+# Initial setup
+#
+SCRNAME=novalog
+TEMPDIR=/sdcard/$SCRNAME
+
+# Check and use arguments
 if [ $# -eq 1 ] && [ $1 != "-s" ] || [ $# -gt 1 ]
 then
-    echo "Usage: $0 [-s]"
+    echo "Usage: $SCRNAME [-s]"
     exit 1
 fi
 
-# Set initial variables
-TEMPDIR=/sdcard/novalog
 if [ $# -eq 1 ] && [ $1 == "-s" ]
 then
-    LOGFILE=novalog.tgz
+    LOGFILE=$SCRNAME.tgz
 else
-    LOGFILE=novalog-`getprop ro.build.date.utc`-`date +%d%m%Y-%S`$((RANDOM%11+10)).tgz
+    LOGFILE=$SCRNAME-`getprop ro.build.date.utc`-`date +%d%m%Y-%S`$((RANDOM%11+10)).tgz
 fi
 
-# Prepare to dump
+#
+# Script entry point
+#
 log "NovaLog starting..."
+
+# Check if script is not running
+pidof -o $$ $SCRNAME > /dev/null
+if [ $? -ne 1 ]
+then
+    log "Another instance is already running! Aborting..."
+    exit 1
+fi
+
+# Check if screen is on
+if [ `cat /sys/class/backlight/panel/brightness` -eq 0 ]
+then
+    log "Screen is off! Aborting..."
+    exit 1
+fi
+
 vibrate
 
+# Prepare to dump
 log "Preparing working directory..."
 rm -rf $TEMPDIR
 mkdir $TEMPDIR
