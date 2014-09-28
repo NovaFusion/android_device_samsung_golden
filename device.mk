@@ -34,7 +34,8 @@ PRODUCT_PACKAGES += \
     hwcomposer.montblanc \
     gralloc.montblanc \
     libstelpcutils \
-    libchuj
+    libchuj \
+    audio.r_submix.default
 
 # Misc packages
 PRODUCT_PACKAGES += \
