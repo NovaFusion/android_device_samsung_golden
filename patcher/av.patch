@@ -1843,3 +1843,42 @@ index 0000000..f78a147
 +
 +#endif
 +/* File EOF */
+diff --git a/media/libstagefright/ACodec.cpp b/media/libstagefright/ACodec.cpp
+index a3d54a4..73c4696 100755
+--- a/media/libstagefright/ACodec.cpp
++++ b/media/libstagefright/ACodec.cpp
+@@ -1083,6 +1083,15 @@ status_t ACodec::configureCodec(
+     }
+ 
+     mIsEncoder = encoder;
++   /* Meticulus:
++    * Software codecs don't require configuration? Not sure
++    * but skipping configuration for them seems to work.
++    */
++    if(strncmp("OMX.google.", mComponentName.c_str(), 11) == 0
++       || strncmp("OMX.ffmpeg.", mComponentName.c_str(), 11) == 0){
++	ALOGI("Meticulus: Soft codec detected, skipping configureCodec\n");
++       return OK;
++    }
+ 
+     status_t err = setComponentRole(encoder /* isEncoder */, mime);
+ 
+@@ -3960,7 +3969,7 @@ bool ACodec::LoadedState::onConfigureComponent(
+ 
+     CHECK(mCodec->mNode != NULL);
+ 
+-#ifndef QCOM_HARDWARE
++#if !defined (QCOM_HARDWARE) && !defined (STE_HARDWARE)
+     AString mime;
+     CHECK(msg->findString("mime", &mime));
+ 
+@@ -3996,7 +4005,7 @@ bool ACodec::LoadedState::onConfigureComponent(
+     }
+     CHECK_EQ((status_t)OK, mCodec->initNativeWindow());
+ 
+-#ifdef QCOM_HARDWARE
++#if defined (QCOM_HARDWARE) || defined (STE_HARDWARE)
+     AString mime;
+     CHECK(msg->findString("mime", &mime));
+ 
+-- 

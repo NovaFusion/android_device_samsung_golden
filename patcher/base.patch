@@ -409,3 +409,47 @@ index 8786275..83130b5 100644
          synchronized (mVolumesLock) {
              for (StorageVolume volume : mVolumes) {
 
+diff --git a/media/java/android/media/MediaCodec.java b/media/java/android/media/MediaCodec.java
+index 5175830..8caec0f 100644
+--- a/media/java/android/media/MediaCodec.java
++++ b/media/java/android/media/MediaCodec.java
+@@ -22,6 +22,7 @@ import android.media.MediaCrypto;
+ import android.media.MediaFormat;
+ import android.os.Bundle;
+ import android.view.Surface;
++import android.util.Log;
+ 
+ import java.nio.ByteBuffer;
+ import java.util.Arrays;
+@@ -204,10 +205,29 @@ final public class MediaCodec {
+         return new MediaCodec(
+                 name, false /* nameIsType */, false /* unused */);
+     }
+-
++    private String mName = "";
+     private MediaCodec(
+             String name, boolean nameIsType, boolean encoder) {
++
++	/* Meticulus:
++	 * STE OMX encoder and decoders don't seem to work when
++	 * directly accessed via this class, so  use software
++         * decoder/encoder for video/avc. Note: had to add OMX.google.h264.encoder
++         * to media_codecs.xml. The configuration below works with Instagram (10/5/2014)
++         */
++	if(name.equals("video/avc") && !encoder){
++		nameIsType = false;
++		name = "OMX.ffmpeg.h264.decoder";
++		Log.i("MediaCodec"," force use " + name + " isEncoder=" + String.valueOf(encoder));
++	}
++        else if(name.equals("video/avc") && encoder){
++		nameIsType = false;
++		name = "OMX.google.h264.encoder";
++		Log.i("MediaCodec"," force use " + name + " isEncoder=" + String.valueOf(encoder));
++	}
++
+         native_setup(name, nameIsType, encoder);
++	mName = name;
+     }
+ 
+     @Override
+-- 

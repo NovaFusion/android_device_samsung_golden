@@ -161,6 +161,10 @@ Only the three quirks included above are recognized at this point:
             <Quirk name="requires-allocate-on-output-ports" />
             <Quirk name="requires-store-metadata-before-idle" />
         </MediaCodec>
+	<MediaCodec name="OMX.ffmpeg.h264.encoder" type="video/avc" />
+        <MediaCodec name="OMX.google.h264.encoder" type="video/avc" />
+        <MediaCodec name="OMX.google.mpeg4.encoder" type="video/mp4v-es" />
+        <MediaCodec name="OMX.google.h263.encoder" type="video/3gpp" />
 
 <!-- Audio encoders -->
         <MediaCodec name="OMX.google.amrnb.encoder" type="audio/3gpp" />
