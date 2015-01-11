@@ -1,0 +1,21 @@
+diff --git a/packages/services/Telecomm/src/com/android/server/telecom/CallAudioManager.java b/packages/services/Telecomm/src/com/android/server/telecom/CallAudioManager.java
+index ffa4879..32454cd 100644
+--- a/packages/services/Telecomm/src/com/android/server/telecom/CallAudioManager.java
++++ b/packages/services/Telecomm/src/com/android/server/telecom/CallAudioManager.java
+@@ -430,6 +430,14 @@
+             Log.d(this, "SetMode Done");
+             mMostRecentlyUsedMode = newMode;
+         }
++
++       int volume = mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
++       int lowerVolume = volume - 1;
++       if (lowerVolume < 0) {
++        lowerVolume = 0;
++       }
++       mAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, lowerVolume, 0);
++       mAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, volume, 0);
+     }
+ 
+     private int selectWiredOrEarpiece(int route, int supportedRouteMask) {
+--
+libgit2 0.21.2

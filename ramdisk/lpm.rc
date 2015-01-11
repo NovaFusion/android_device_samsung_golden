@@ -1,0 +1,31 @@
+on early-init
+    start ueventd
+    write /sys/class/power_supply/battery/batt_lp_charging 1
+
+on init
+    export PATH /system/bin
+    export LD_LIBRARY_PATH /system/lib
+
+    mkdir /mnt 0775 root system
+    mkdir /mnt/.lfs 0755 root root
+
+on fs
+    mount ext4 /dev/block/mmcblk0p22 /system wait ro 
+
+on post-fs
+    insmod /system/lib/modules/j4fs.ko
+    mount j4fs /dev/block/mmcblk0p19 /mnt/.lfs wait
+    insmod /system/lib/modules/param.ko
+
+    write /sys/class/power_supply/sec-fuelgauge/reinit_cap 1
+    write /sys/class/power_supply/battery/batt_reinit_capacity 1
+
+on boot
+    class_start default
+
+service ueventd /sbin/ueventd
+    critical
+
+service playlpm /system/bin/playlpm
+
+service lpmkey /system/bin/lpmkey

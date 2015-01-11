@@ -26,7 +26,3 @@ ste.cam.front.orientation=270
 ste.cam.back.orientation=90
 ste.cam.ext.cfg.path.secondary=/system/usr/share/camera/config_file/aptina_mt9v113.dat
 ste.omx.ctx=0
-ro.config.sync=yes
-ro.config.ntp.server_poll=86400000
-ro.config.ntp.clock_sync=1800000
-ro.config.ntp.sync_mode=3

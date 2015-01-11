@@ -59,11 +59,10 @@ __BEGIN_DECLS
 #define AUDIO_DEVICE_API_VERSION_0_0 HARDWARE_DEVICE_API_VERSION(0, 0)
 #define AUDIO_DEVICE_API_VERSION_1_0 HARDWARE_DEVICE_API_VERSION(1, 0)
 #define AUDIO_DEVICE_API_VERSION_2_0 HARDWARE_DEVICE_API_VERSION(2, 0)
-#ifndef ICS_AUDIO_BLOB
-#define AUDIO_DEVICE_API_VERSION_CURRENT AUDIO_DEVICE_API_VERSION_2_0
-#else
-#define AUDIO_DEVICE_API_VERSION_CURRENT AUDIO_DEVICE_API_VERSION_1_0
-#endif
+#define AUDIO_DEVICE_API_VERSION_3_0 HARDWARE_DEVICE_API_VERSION(3, 0)
+#define AUDIO_DEVICE_API_VERSION_CURRENT AUDIO_DEVICE_API_VERSION_3_0
+/* Minimal audio HAL version supported by the audio framework */
+#define AUDIO_DEVICE_API_VERSION_MIN AUDIO_DEVICE_API_VERSION_1_0
 
 /**
  * List of known audio HAL modules. This is the base name of the audio HAL
@@ -100,22 +99,38 @@ __BEGIN_DECLS
 #define AUDIO_PARAMETER_VALUE_TTY_HCO "tty_hco"
 #define AUDIO_PARAMETER_VALUE_TTY_FULL "tty_full"
 
+/* Hearing Aid Compatibility - Telecoil (HAC-T) mode on/off
+   Strings must be in sync with CallFeaturesSetting.java */
+#define AUDIO_PARAMETER_KEY_HAC "HACSetting"
+#define AUDIO_PARAMETER_VALUE_HAC_ON "ON"
+#define AUDIO_PARAMETER_VALUE_HAC_OFF "OFF"
+
 /* A2DP sink address set by framework */
 #define AUDIO_PARAMETER_A2DP_SINK_ADDRESS "a2dp_sink_address"
 
+/* A2DP source address set by framework */
+#define AUDIO_PARAMETER_A2DP_SOURCE_ADDRESS "a2dp_source_address"
+
 /* Screen state */
 #define AUDIO_PARAMETER_KEY_SCREEN_STATE "screen_state"
+
+/* Bluetooth SCO wideband */
+#define AUDIO_PARAMETER_KEY_BT_SCO_WB "bt_wbs"
+
 
 /**
  *  audio stream parameters
  */
 
-#define AUDIO_PARAMETER_STREAM_ROUTING "routing"            // audio_devices_t
-#define AUDIO_PARAMETER_STREAM_FORMAT "format"              // audio_format_t
-#define AUDIO_PARAMETER_STREAM_CHANNELS "channels"          // audio_channel_mask_t
-#define AUDIO_PARAMETER_STREAM_FRAME_COUNT "frame_count"    // size_t
-#define AUDIO_PARAMETER_STREAM_INPUT_SOURCE "input_source"  // audio_source_t
-#define AUDIO_PARAMETER_STREAM_SAMPLING_RATE "sampling_rate" // uint32_t
+#define AUDIO_PARAMETER_STREAM_ROUTING "routing"             /* audio_devices_t */
+#define AUDIO_PARAMETER_STREAM_FORMAT "format"               /* audio_format_t */
+#define AUDIO_PARAMETER_STREAM_CHANNELS "channels"           /* audio_channel_mask_t */
+#define AUDIO_PARAMETER_STREAM_FRAME_COUNT "frame_count"     /* size_t */
+#define AUDIO_PARAMETER_STREAM_INPUT_SOURCE "input_source"   /* audio_source_t */
+#define AUDIO_PARAMETER_STREAM_SAMPLING_RATE "sampling_rate" /* uint32_t */
+
+#define AUDIO_PARAMETER_DEVICE_CONNECT "connect"            /* audio_devices_t */
+#define AUDIO_PARAMETER_DEVICE_DISCONNECT "disconnect"      /* audio_devices_t */
 
 /* Query supported formats. The response is a '|' separated list of strings from
  * audio_format_t enum e.g: "sup_formats=AUDIO_FORMAT_PCM_16_BIT" */
@@ -127,34 +142,10 @@ __BEGIN_DECLS
  * "sup_sampling_rates=44100|48000" */
 #define AUDIO_PARAMETER_STREAM_SUP_SAMPLING_RATES "sup_sampling_rates"
 
-/**
- * audio codec parameters
- */
-
-#define AUDIO_OFFLOAD_CODEC_PARAMS "music_offload_codec_param"
-#define AUDIO_OFFLOAD_CODEC_BIT_PER_SAMPLE "music_offload_bit_per_sample"
-#define AUDIO_OFFLOAD_CODEC_BIT_RATE "music_offload_bit_rate"
-#define AUDIO_OFFLOAD_CODEC_AVG_BIT_RATE "music_offload_avg_bit_rate"
-#define AUDIO_OFFLOAD_CODEC_ID "music_offload_codec_id"
-#define AUDIO_OFFLOAD_CODEC_BLOCK_ALIGN "music_offload_block_align"
-#define AUDIO_OFFLOAD_CODEC_SAMPLE_RATE "music_offload_sample_rate"
-#define AUDIO_OFFLOAD_CODEC_ENCODE_OPTION "music_offload_encode_option"
-#define AUDIO_OFFLOAD_CODEC_NUM_CHANNEL  "music_offload_num_channels"
-#define AUDIO_OFFLOAD_CODEC_DOWN_SAMPLING  "music_offload_down_sampling"
-#define AUDIO_OFFLOAD_CODEC_DELAY_SAMPLES  "delay_samples"
-#define AUDIO_OFFLOAD_CODEC_PADDING_SAMPLES  "padding_samples"
-#define AUDIO_OFFLOAD_CODEC_WMA_FORMAT_TAG "music_offload_wma_format_tag"
-#define AUDIO_OFFLOAD_CODEC_WMA_BLOCK_ALIGN "music_offload_wma_block_align"
-#define AUDIO_OFFLOAD_CODEC_WMA_BIT_PER_SAMPLE "music_offload_wma_bit_per_sample"
-#define AUDIO_OFFLOAD_CODEC_WMA_CHANNEL_MASK "music_offload_wma_channel_mask"
-#define AUDIO_OFFLOAD_CODEC_WMA_ENCODE_OPTION "music_offload_wma_encode_option"
-#define AUDIO_OFFLOAD_CODEC_WMA_ENCODE_OPTION1"music_offload_wma_encode_option1"
-#define AUDIO_OFFLOAD_CODEC_WMA_ENCODE_OPTION2 "music_offload_wma_encode_option2"
-#define AUDIO_OFFLOAD_CODEC_FORMAT  "music_offload_codec_format"
-#define AUDIO_OFFLOAD_CODEC_FLAC_MIN_BLK_SIZE "music_offload_flac_min_blk_size"
-#define AUDIO_OFFLOAD_CODEC_FLAC_MAX_BLK_SIZE "music_offload_flac_max_blk_size"
-#define AUDIO_OFFLOAD_CODEC_FLAC_MIN_FRAME_SIZE "music_offload_flac_min_frame_size"
-#define AUDIO_OFFLOAD_CODEC_FLAC_MAX_FRAME_SIZE "music_offload_flac_max_frame_size"
+/* Get the HW synchronization source used for an output stream.
+ * Return a valid source (positive integer) or AUDIO_HW_SYNC_INVALID if an error occurs
+ * or no HW sync source is used. */
+#define AUDIO_PARAMETER_STREAM_HW_AV_SYNC "hw_av_sync"
 
 /* Query handle fm parameter*/
 #define AUDIO_PARAMETER_KEY_HANDLE_FM "handle_fm"
@@ -174,38 +165,46 @@ __BEGIN_DECLS
 /* Query ADSP Status */
 #define AUDIO_PARAMETER_KEY_ADSP_STATUS "ADSP_STATUS"
 
-/* Query Sound Card Status */
-#define AUDIO_PARAMETER_KEY_SND_CARD_STATUS "SND_CARD_STATUS"
-
 /* Query if Proxy can be Opend */
 #define AUDIO_CAN_OPEN_PROXY "can_open_proxy"
 
 /* Query fm volume */
 #define AUDIO_PARAMETER_KEY_FM_VOLUME "fm_volume"
 
-/**************************************/
-
-/* common audio stream configuration parameters
- * You should memset() the entire structure to zero before use to
- * ensure forward compatibility
+/**
+ * audio codec parameters
  */
-struct audio_config {
-    uint32_t sample_rate;
-    audio_channel_mask_t channel_mask;
-    audio_format_t  format;
-    audio_offload_info_t offload_info;
-};
-typedef struct audio_config audio_config_t;
+
+#define AUDIO_OFFLOAD_CODEC_PARAMS "music_offload_codec_param"
+#define AUDIO_OFFLOAD_CODEC_BIT_PER_SAMPLE "music_offload_bit_per_sample"
+#define AUDIO_OFFLOAD_CODEC_BIT_RATE "music_offload_bit_rate"
+#define AUDIO_OFFLOAD_CODEC_AVG_BIT_RATE "music_offload_avg_bit_rate"
+#define AUDIO_OFFLOAD_CODEC_ID "music_offload_codec_id"
+#define AUDIO_OFFLOAD_CODEC_BLOCK_ALIGN "music_offload_block_align"
+#define AUDIO_OFFLOAD_CODEC_SAMPLE_RATE "music_offload_sample_rate"
+#define AUDIO_OFFLOAD_CODEC_ENCODE_OPTION "music_offload_encode_option"
+#define AUDIO_OFFLOAD_CODEC_NUM_CHANNEL  "music_offload_num_channels"
+#define AUDIO_OFFLOAD_CODEC_DOWN_SAMPLING  "music_offload_down_sampling"
+#define AUDIO_OFFLOAD_CODEC_DELAY_SAMPLES  "delay_samples"
+#define AUDIO_OFFLOAD_CODEC_PADDING_SAMPLES  "padding_samples"
+
+/* Query if surround sound recording is supported */
+#define AUDIO_PARAMETER_KEY_SSR "ssr"
+
+/* Query ADSP Status */
+#define AUDIO_PARAMETER_KEY_ADSP_STATUS "ADSP_STATUS"
 
 #ifdef QCOM_DIRECTTRACK
 /** Structure to save buffer information for applying effects for
- *  LPA buffers */
++ *  LPA buffers */
 struct buf_info {
     int bufsize;
     int nBufs;
     int **buffers;
 };
 #endif
+
+/**************************************/
 
 /* common audio stream parameters and operations */
 struct audio_stream {
@@ -315,6 +314,11 @@ typedef enum {
  */
 
 struct audio_stream_out {
+    /**
+     * Common methods of the audio stream out.  This *must* be the first member of audio_stream_out
+     * as users of this structure will cast a audio_stream to audio_stream_out pointer in contexts
+     * where it's known the audio_stream references an audio_stream_out.
+     */
     struct audio_stream common;
 
     /**
@@ -353,7 +357,6 @@ struct audio_stream_out {
     int (*get_render_position)(const struct audio_stream_out *stream,
                                uint32_t *dsp_frames);
 
-#ifndef ICS_AUDIO_BLOB
 #ifdef QCOM_DIRECTTRACK
     /**
      * start audio data rendering
@@ -446,7 +449,7 @@ struct audio_stream_out {
      */
     int (*get_presentation_position)(const struct audio_stream_out *stream,
                                uint64_t *frames, struct timespec *timestamp);
-#endif
+
 #ifdef QCOM_DIRECTTRACK
     /**
     * return the current timestamp after quering to the driver
@@ -475,6 +478,11 @@ struct audio_stream_out {
 typedef struct audio_stream_out audio_stream_out_t;
 
 struct audio_stream_in {
+    /**
+     * Common methods of the audio stream in.  This *must* be the first member of audio_stream_in
+     * as users of this structure will cast a audio_stream to audio_stream_in pointer in contexts
+     * where it's known the audio_stream references an audio_stream_in.
+     */
     struct audio_stream common;
 
     /** set the input gain for the audio driver. This method is for
@@ -504,66 +512,13 @@ typedef struct audio_stream_in audio_stream_in_t;
 
 /**
  * return the frame size (number of bytes per sample).
+ *
+ * Deprecated: use audio_stream_out_frame_size() or audio_stream_in_frame_size() instead.
  */
+__attribute__((__deprecated__))
 static inline size_t audio_stream_frame_size(const struct audio_stream *s)
 {
     size_t chan_samp_sz;
-#ifdef QCOM_HARDWARE
-    audio_format_t format = s->get_format(s);
-    uint32_t chan_mask = s->get_channels(s);
-    if(audio_is_output_channel(chan_mask)) {
-        if (audio_is_linear_pcm(format) &&
-                format != AUDIO_FORMAT_PCM_8_24_BIT) {
-            chan_samp_sz = audio_bytes_per_sample(format);
-            return popcount(s->get_channels(s)) * chan_samp_sz;
-        }
-        return sizeof(int8_t);
-    } else if (audio_is_input_channel(chan_mask)) {
-        char *tmpparam;
-        int isParamEqual;
-
-        if(!s)
-            return 0;
-
-        chan_mask &= (AUDIO_CHANNEL_IN_STEREO | \
-                      AUDIO_CHANNEL_IN_MONO | \
-                      AUDIO_CHANNEL_IN_5POINT1);
-
-        tmpparam = s->get_parameters(s, "voip_flag");
-        isParamEqual = !strncmp(tmpparam,"voip_flag=1", sizeof("voip_flag=1"));
-        free(tmpparam);
-        if(isParamEqual) {
-            if(format != AUDIO_FORMAT_PCM_8_BIT)
-                return popcount(chan_mask) * sizeof(int16_t);
-            else
-                return popcount(chan_mask) * sizeof(int8_t);
-        }
-
-        switch (format) {
-
-        case AUDIO_FORMAT_AMR_NB:
-            chan_samp_sz = 32;
-            break;
-        case AUDIO_FORMAT_EVRC:
-            chan_samp_sz = 23;
-            break;
-        case AUDIO_FORMAT_QCELP:
-            chan_samp_sz = 35;
-            break;
-        case AUDIO_FORMAT_AMR_WB:
-            chan_samp_sz = 61;
-            break;
-        case AUDIO_FORMAT_PCM_16_BIT:
-            chan_samp_sz = sizeof(int16_t);
-            break;
-        case AUDIO_FORMAT_PCM_8_BIT:
-        default:
-            chan_samp_sz = sizeof(int8_t);
-            break;
-        }
-        return popcount(chan_mask) * chan_samp_sz;
-    }
-#else
     audio_format_t format = s->get_format(s);
 
     if (audio_is_linear_pcm(format) &&
@@ -573,9 +528,39 @@ static inline size_t audio_stream_frame_size(const struct audio_stream *s)
     }
 
     return sizeof(int8_t);
-#endif
 }
 
+/**
+ * return the frame size (number of bytes per sample) of an output stream.
+ */
+static inline size_t audio_stream_out_frame_size(const struct audio_stream_out *s)
+{
+    size_t chan_samp_sz;
+    audio_format_t format = s->common.get_format(&s->common);
+
+    if (audio_is_linear_pcm(format)) {
+        chan_samp_sz = audio_bytes_per_sample(format);
+        return audio_channel_count_from_out_mask(s->common.get_channels(&s->common)) * chan_samp_sz;
+    }
+
+    return sizeof(int8_t);
+}
+
+/**
+ * return the frame size (number of bytes per sample) of an input stream.
+ */
+static inline size_t audio_stream_in_frame_size(const struct audio_stream_in *s)
+{
+    size_t chan_samp_sz;
+    audio_format_t format = s->common.get_format(&s->common);
+
+    if (audio_is_linear_pcm(format)) {
+        chan_samp_sz = audio_bytes_per_sample(format);
+        return audio_channel_count_from_in_mask(s->common.get_channels(&s->common)) * chan_samp_sz;
+    }
+
+    return sizeof(int8_t);
+}
 
 /**********************************************************************/
 
@@ -589,6 +574,11 @@ struct audio_module {
 };
 
 struct audio_hw_device {
+    /**
+     * Common methods of the audio device.  This *must* be the first member of audio_hw_device
+     * as users of this structure will cast a hw_device_t to audio_hw_device pointer in contexts
+     * where it's known the hw_device_t references an audio_hw_device.
+     */
     struct hw_device_t common;
 
     /**
@@ -621,7 +611,6 @@ struct audio_hw_device {
      */
     int (*set_master_volume)(struct audio_hw_device *dev, float volume);
 
-#ifndef ICS_AUDIO_BLOB
     /**
      * Get the current master volume value for the HAL, if the HAL supports
      * master volume control.  AudioFlinger will query this value from the
@@ -630,7 +619,6 @@ struct audio_hw_device {
      * this method may leave it set to NULL.
      */
     int (*get_master_volume)(struct audio_hw_device *dev, float *volume);
-#endif
 
     /**
      * set_mode is called when the audio mode changes. AUDIO_MODE_NORMAL mode
@@ -658,58 +646,47 @@ struct audio_hw_device {
      * See also get_buffer_size which is for a particular stream.
      */
     size_t (*get_input_buffer_size)(const struct audio_hw_device *dev,
-#ifndef ICS_AUDIO_BLOB
                                     const struct audio_config *config);
-#else
-                                    uint32_t sample_rate, int format,
-                                    int channel_count);
-#endif
 
-    /** This method creates and opens the audio hardware output stream */
-#ifndef ICS_AUDIO_BLOB
+    /** This method creates and opens the audio hardware output stream.
+     * The "address" parameter qualifies the "devices" audio device type if needed.
+     * The format format depends on the device type:
+     * - Bluetooth devices use the MAC address of the device in the form "00:11:22:AA:BB:CC"
+     * - USB devices use the ALSA card and device numbers in the form  "card=X;device=Y"
+     * - Other devices may use a number or any other string.
+     */
+
     int (*open_output_stream)(struct audio_hw_device *dev,
                               audio_io_handle_t handle,
                               audio_devices_t devices,
                               audio_output_flags_t flags,
                               struct audio_config *config,
-                              struct audio_stream_out **stream_out);
-#else
-    int (*open_output_stream)(struct audio_hw_device *dev, uint32_t devices,
-                              int *format, uint32_t *channels,
-                              uint32_t *sample_rate,
-                              struct audio_stream_out **out);
-#endif
+                              struct audio_stream_out **stream_out,
+                              const char *address);
 
     void (*close_output_stream)(struct audio_hw_device *dev,
                                 struct audio_stream_out* stream_out);
 
-#ifdef STE_SAMSUNG_HARDWARE
-	/** This method creates and opens the audio hardware output
-	 *  for broadcast stream */
-	int (*open_broadcast_stream)(struct audio_hw_device *dev, uint32_t devices,
-	                             int format, uint32_t channels,
-	                             uint32_t sample_rate,
-	                             uint32_t audio_source,
-	                             struct audio_broadcast_stream **out);
+    /** This method creates and opens the audio hardware output
+     *  for broadcast stream */
+    int (*open_broadcast_stream)(struct audio_hw_device *dev, uint32_t devices,
+                                 int format, uint32_t channels,
+                                 uint32_t sample_rate,
+                                 uint32_t audio_source,
+                                 struct audio_broadcast_stream **out);
 
-	void (*close_broadcast_stream)(struct audio_hw_device *dev,
-	                               struct audio_broadcast_stream *out);
-#endif
+    void (*close_broadcast_stream)(struct audio_hw_device *dev,
+                                   struct audio_broadcast_stream *out);
 
     /** This method creates and opens the audio hardware input stream */
-#ifndef ICS_AUDIO_BLOB
     int (*open_input_stream)(struct audio_hw_device *dev,
                              audio_io_handle_t handle,
                              audio_devices_t devices,
                              struct audio_config *config,
-                             struct audio_stream_in **stream_in);
-#else
-    int (*open_input_stream)(struct audio_hw_device *dev, uint32_t devices,
-                             int *format, uint32_t *channels,
-                             uint32_t *sample_rate,
-                             audio_in_acoustics_t acoustics,
-                             struct audio_stream_in **stream_in);
-#endif
+                             struct audio_stream_in **stream_in,
+                             audio_input_flags_t flags,
+                             const char *address,
+                             audio_source_t source);
 
     void (*close_input_stream)(struct audio_hw_device *dev,
                                struct audio_stream_in *stream_in);
@@ -717,7 +694,6 @@ struct audio_hw_device {
     /** This method dumps the state of the audio hardware */
     int (*dump)(const struct audio_hw_device *dev, int fd);
 
-#ifndef ICS_AUDIO_BLOB
     /**
      * set the audio mute status for all audio activities.  If any value other
      * than 0 is returned, the software mixer will emulate this capability.
@@ -732,7 +708,37 @@ struct audio_hw_device {
      * method may leave it set to NULL.
      */
     int (*get_master_mute)(struct audio_hw_device *dev, bool *mute);
-#endif
+
+    /**
+     * Routing control
+     */
+
+    /* Creates an audio patch between several source and sink ports.
+     * The handle is allocated by the HAL and should be unique for this
+     * audio HAL module. */
+    int (*create_audio_patch)(struct audio_hw_device *dev,
+                               unsigned int num_sources,
+                               const struct audio_port_config *sources,
+                               unsigned int num_sinks,
+                               const struct audio_port_config *sinks,
+                               audio_patch_handle_t *handle);
+
+    /* Release an audio patch */
+    int (*release_audio_patch)(struct audio_hw_device *dev,
+                               audio_patch_handle_t handle);
+
+    /* Fills the list of supported attributes for a given audio port.
+     * As input, "port" contains the information (type, role, address etc...)
+     * needed by the HAL to identify the port.
+     * As output, "port" contains possible attributes (sampling rates, formats,
+     * channel masks, gain controllers...) for this port.
+     */
+    int (*get_audio_port)(struct audio_hw_device *dev,
+                          struct audio_port *port);
+
+    /* Set audio port configuration */
+    int (*set_audio_port_config)(struct audio_hw_device *dev,
+                         const struct audio_port_config *config);
 
 #ifdef AUDIO_LISTEN_ENABLED
     /** This method creates the listen session and returns handle */
