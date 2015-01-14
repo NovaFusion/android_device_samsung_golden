@@ -1,21 +1,21 @@
 diff -Bur '--exclude=.git' a/frameworks/av/include/media/stagefright/ColorConverter.h b/frameworks/av/include/media/stagefright/ColorConverter.h
 --- a/frameworks/av/include/media/stagefright/ColorConverter.h	2015-01-07 23:49:10.597883565 +0100
-+++ b/frameworks/av/include/media/stagefright/ColorConverter.h	2015-01-06 10:30:55.138603385 +0100
-@@ -73,6 +73,11 @@
++++ b/frameworks/av/include/media/stagefright/ColorConverter.h	2015-01-13 17:47:58.548426038 +0100
+@@ -72,6 +72,11 @@
+ 
      status_t convertQCOMYUV420SemiPlanar(
              const BitmapParams &src, const BitmapParams &dst);
- 
++			
 +#ifdef STE_HARDWARE
 +    status_t convertSTEYUV420PackedSemiPlanarMB(
 +            const BitmapParams &src, const BitmapParams &dst);
 +#endif
-+
+ 
      status_t convertYUV420SemiPlanar(
              const BitmapParams &src, const BitmapParams &dst);
- 
 diff -Bur '--exclude=.git' a/frameworks/av/include/media/stagefright/MediaDefs.h b/frameworks/av/include/media/stagefright/MediaDefs.h
 --- a/frameworks/av/include/media/stagefright/MediaDefs.h	2015-01-07 23:49:10.597883565 +0100
-+++ b/frameworks/av/include/media/stagefright/MediaDefs.h	2015-01-06 10:30:55.138603385 +0100
++++ b/frameworks/av/include/media/stagefright/MediaDefs.h	2015-01-13 17:47:58.548426038 +0100
 @@ -29,8 +29,14 @@
  extern const char *MEDIA_MIMETYPE_VIDEO_MPEG4;
  extern const char *MEDIA_MIMETYPE_VIDEO_MPEG4_DP;
@@ -33,7 +33,7 @@ diff -Bur '--exclude=.git' a/frameworks/av/include/media/stagefright/MediaDefs.h
  extern const char *MEDIA_MIMETYPE_AUDIO_AMR_WB;
 diff -Bur '--exclude=.git' a/frameworks/av/include/media/stagefright/OMXCodec.h b/frameworks/av/include/media/stagefright/OMXCodec.h
 --- a/frameworks/av/include/media/stagefright/OMXCodec.h	2015-01-07 23:49:10.601883565 +0100
-+++ b/frameworks/av/include/media/stagefright/OMXCodec.h	2015-01-06 10:33:40.410597576 +0100
++++ b/frameworks/av/include/media/stagefright/OMXCodec.h	2015-01-13 17:47:58.548426038 +0100
 @@ -95,6 +95,10 @@
      // from MediaBufferObserver
      virtual void signalBufferReturned(MediaBuffer *buffer);
@@ -45,41 +45,25 @@ diff -Bur '--exclude=.git' a/frameworks/av/include/media/stagefright/OMXCodec.h 
      enum Quirks {
          kNeedsFlushBeforeDisable              = 1,
          kWantsNALFragments                    = 2,
-@@ -109,7 +113,8 @@
+@@ -109,6 +113,9 @@
          kSupportsMultipleFramesPerInputBuffer = 1024,
          kRequiresLargerEncoderOutputBuffer    = 2048,
          kOutputBuffersAreUnreadable           = 4096,
--        kRequiresGlobalFlush                  = 0x20000000, // 2^29
++#ifdef STE_HARDWARE
 +        kRequiresStoreMetaDataBeforeIdle      = 16384,
-+	kRequiresGlobalFlush                  = 0x20000000, // 2^29
++#endif
+         kRequiresGlobalFlush                  = 0x20000000, // 2^29
          kRequiresWMAProComponent              = 0x40000000, //2^30
      };
- 
-Only in b/frameworks/av/include/media/stagefright: OMXCodec.h.rej
-diff -Bur '--exclude=.git' a/frameworks/av/media/libmediaplayerservice/MediaPlayerFactory.cpp b/frameworks/av/media/libmediaplayerservice/MediaPlayerFactory.cpp
---- a/frameworks/av/media/libmediaplayerservice/MediaPlayerFactory.cpp	2015-01-07 23:49:10.645883563 +0100
-+++ b/frameworks/av/media/libmediaplayerservice/MediaPlayerFactory.cpp	2015-01-08 11:45:07.596373839 +0100
-@@ -63,11 +63,6 @@
- 
- static player_type getDefaultPlayerType() {
-     char value[PROPERTY_VALUE_MAX];
--    if (property_get("media.stagefright.use-awesome", value, NULL)
--            && (!strcmp("1", value) || !strcasecmp("true", value))) {
--        return STAGEFRIGHT_PLAYER;
--    }
--
-     // TODO: remove this EXPERIMENTAL developer settings property
-     if (property_get("persist.sys.media.use-awesome", value, NULL)
-             && !strcasecmp("true", value)) {
 diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/ACodec.cpp b/frameworks/av/media/libstagefright/ACodec.cpp
 --- a/frameworks/av/media/libstagefright/ACodec.cpp	2015-01-07 23:49:10.657883563 +0100
-+++ b/frameworks/av/media/libstagefright/ACodec.cpp	2015-01-06 11:01:54.666538032 +0100
++++ b/frameworks/av/media/libstagefright/ACodec.cpp	2015-01-13 17:48:55.232424046 +0100
 @@ -552,11 +552,15 @@
  
      status_t err;
      if (mNativeWindow != NULL && portIndex == kPortIndexOutput) {
 +#ifdef STE_HARDWARE
-+        err = allocateOutputBuffersFromNativeWindow();
++	err = allocateOutputBuffersFromNativeWindow();
 +#else
          if (mStoreMetaDataInOutputBuffers) {
              err = allocateOutputMetaDataBuffers();
@@ -90,17 +74,46 @@ diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/ACodec.cpp b/fra
      } else {
          OMX_PARAM_PORTDEFINITIONTYPE def;
          InitOMXParams(&def);
-@@ -666,7 +670,7 @@
+@@ -666,7 +670,11 @@
              mNativeWindow.get(),
              def.format.video.nFrameWidth,
              def.format.video.nFrameHeight,
--            def.format.video.eColorFormat);
++#ifdef STE_HARDWARE
 +            OMXCodec::OmxToHALFormat(def.format.video.eColorFormat));
++#else
+             def.format.video.eColorFormat);
++#endif          
  #endif
  
      if (err != 0) {
+@@ -1260,6 +1268,15 @@
+     sp<AMessage> outputFormat = new AMessage();
+ 
+     mIsEncoder = encoder;
++   /* Meticulus:
++    * Software codecs don't require configuration? Not sure
++    * but skipping configuration for them seems to work.
++    */
++    if(strncmp("OMX.google.h264", mComponentName.c_str(), 15) == 0
++       || strncmp("OMX.ffmpeg.h264", mComponentName.c_str(), 15) == 0){
++	ALOGI("Meticulus: Soft codec %s detected, skipping configureCodec\n", mComponentName.c_str());
++       return OK;
++    }
+ 
+     status_t err = setComponentRole(encoder /* isEncoder */, mime);
+ 
+@@ -4486,7 +4503,7 @@
+                 mCodec->mSkipCutBuffer->submit(info->mData);
+             }
+             info->mData->meta()->setInt64("timeUs", timeUs);
+-            info->mData->meta()->setObject("graphic-buffer", info->mGraphicBuffer);
++            //info->mData->meta()->setObject("graphic-buffer", (android::RefBase*)&info->mGraphicBuffer);
+ 
+             sp<AMessage> notify = mCodec->mNotify->dup();
+             notify->setInt32("what", CodecBase::kWhatDrainThisBuffer);
+diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/CameraSource.cpp b/frameworks/av/media/libstagefright/CameraSource.cpp
 --- a/frameworks/av/media/libstagefright/CameraSource.cpp	2015-01-07 23:49:10.661883562 +0100
-+++ b/frameworks/av/media/libstagefright/CameraSource.cpp	2015-01-06 10:30:55.142603385 +0100
++++ b/frameworks/av/media/libstagefright/CameraSource.cpp	2015-01-13 17:47:58.552426038 +0100
 @@ -128,6 +128,12 @@
         return OMX_TI_COLOR_FormatYUV420PackedSemiPlanar;
      }
@@ -139,7 +152,7 @@ diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/ACodec.cpp b/fra
      ExtendedUtils::HFR::setHFRIfEnabled(params, mMeta);
 diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp b/frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp
 --- a/frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp	2015-01-07 23:49:10.829883557 +0100
-+++ b/frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp	2015-01-06 10:30:55.146603384 +0100
++++ b/frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp	2015-01-13 17:47:58.552426038 +0100
 @@ -47,6 +47,9 @@
          case OMX_QCOM_COLOR_FormatYVU420SemiPlanar:
          case OMX_COLOR_FormatYUV420SemiPlanar:
@@ -308,8 +321,8 @@ diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/colorconversion/
      static const signed kClipMax = 535;
 diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/MediaDefs.cpp b/frameworks/av/media/libstagefright/MediaDefs.cpp
 --- a/frameworks/av/media/libstagefright/MediaDefs.cpp	2015-01-07 23:49:10.669883562 +0100
-+++ b/frameworks/av/media/libstagefright/MediaDefs.cpp	2015-01-06 11:19:56.110500024 +0100
-@@ -27,8 +27,13 @@
++++ b/frameworks/av/media/libstagefright/MediaDefs.cpp	2015-01-13 17:47:58.552426038 +0100
+@@ -27,8 +27,14 @@
  const char *MEDIA_MIMETYPE_VIDEO_MPEG4 = "video/mp4v-es";
  const char *MEDIA_MIMETYPE_VIDEO_MPEG4_DP = "video/mp4v-esdp";
  const char *MEDIA_MIMETYPE_VIDEO_H263 = "video/3gpp";
@@ -318,14 +331,15 @@ diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/MediaDefs.cpp b/
 +#endif
  const char *MEDIA_MIMETYPE_VIDEO_MPEG2 = "video/mpeg2";
  const char *MEDIA_MIMETYPE_VIDEO_RAW = "video/raw";
-+#ifdef STE_HARDWARE
-+#endif
++//#ifdef STE_HARDWARE
++//const char *MEDIA_MIMETYPE_VIDEO_VC1 = "video/vc1";
++//#endif
  
  const char *MEDIA_MIMETYPE_AUDIO_AMR_NB = "audio/3gpp";
  const char *MEDIA_MIMETYPE_AUDIO_AMR_WB = "audio/amr-wb";
 diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/omx/OMXNodeInstance.cpp b/frameworks/av/media/libstagefright/omx/OMXNodeInstance.cpp
 --- a/frameworks/av/media/libstagefright/omx/OMXNodeInstance.cpp	2015-01-07 23:49:10.845883556 +0100
-+++ b/frameworks/av/media/libstagefright/omx/OMXNodeInstance.cpp	2015-01-06 10:30:55.146603384 +0100
++++ b/frameworks/av/media/libstagefright/omx/OMXNodeInstance.cpp	2015-01-13 17:49:10.476423510 +0100
 @@ -630,13 +630,20 @@
  
      // See if the newer version of the extension is present.
@@ -350,121 +364,170 @@ diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/omx/OMXNodeInsta
      OMX_ERRORTYPE err = OMX_GetExtensionIndex(mHandle, name, &index);
 diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/OMXClient.cpp b/frameworks/av/media/libstagefright/OMXClient.cpp
 --- a/frameworks/av/media/libstagefright/OMXClient.cpp	2015-01-07 23:49:10.669883562 +0100
-+++ b/frameworks/av/media/libstagefright/OMXClient.cpp	2015-01-06 10:39:44.238584789 +0100
-@@ -31,6 +31,11 @@
++++ b/frameworks/av/media/libstagefright/OMXClient.cpp	2015-01-13 17:48:12.884425534 +0100
+@@ -30,6 +30,10 @@
+ #include <utils/KeyedVector.h>
  
  #include "include/OMX.h"
- 
 +#ifdef STE_HARDWARE
 +#include <OMX_Video.h>
 +#include <OMX_Index.h>
 +#endif
-+
+ 
  namespace android {
  
- struct MuxOMX : public IOMX {
-@@ -257,6 +262,21 @@
+@@ -257,7 +261,23 @@
  status_t MuxOMX::getParameter(
          node_id node, OMX_INDEXTYPE index,
          void *params, size_t size) {
+-    return getOMX(node)->getParameter(node, index, params, size);
 +#ifdef STE_HARDWARE
-+    /* Meticulus:
-+     * If we call into our STE omx blobs with an unsupported profile index
-+     * The blob freaks out and dies causing errors later. If we stop the call
-+     * and just return an error here, VFM doesn't freak out and the caller
-+     * can try a working profile. i.e. YouTube v5.10.1.5 (9/19/2014) and up.
-+     */
-+    if(index == OMX_IndexParamVideoProfileLevelQuerySupported){
-+        OMX_VIDEO_PARAM_PROFILELEVELTYPE *pt = (OMX_VIDEO_PARAM_PROFILELEVELTYPE *)params;
-+        ALOGI("Meticulus: eProfile=%lu eLevel=%lu nProfileIndex=%lu\n",pt->eProfile, pt->eLevel, pt->nProfileIndex);
-+        if(pt->nProfileIndex == 0){
-+            return -1;
-+        }
-+    }
++	/* Meticulus:
++	 * If we call into our STE omx blobs with an unsupported profile index
++	 * The blob freaks out and dies causing errors later. If we stop the call
++	 * and just return an error here, VFM doesn't freak out and the caller
++	 * can try a working profile. i.e. YouTube v5.10.1.5 (9/19/2014) and up.
++	 */
++	if(index == OMX_IndexParamVideoProfileLevelQuerySupported){
++		OMX_VIDEO_PARAM_PROFILELEVELTYPE *pt = (OMX_VIDEO_PARAM_PROFILELEVELTYPE *)params;
++		ALOGI("Meticulus: eProfile=%lu eLevel=%lu nProfileIndex=%lu\n",pt->eProfile, pt->eLevel, pt->nProfileIndex);
++		if(pt->nProfileIndex == 0){
++			return -1;
++		}
++		
++	}
 +#endif
-     return getOMX(node)->getParameter(node, index, params, size);
++    	return getOMX(node)->getParameter(node, index, params, size);
  }
  
+ status_t MuxOMX::setParameter(
 diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/OMXCodec.cpp b/frameworks/av/media/libstagefright/OMXCodec.cpp
 --- a/frameworks/av/media/libstagefright/OMXCodec.cpp	2015-01-07 23:49:10.669883562 +0100
-+++ b/frameworks/av/media/libstagefright/OMXCodec.cpp	2015-01-06 11:36:10.330465785 +0100
++++ b/frameworks/av/media/libstagefright/OMXCodec.cpp	2015-01-13 17:47:58.552426038 +0100
 @@ -261,6 +261,20 @@
      return 0;
  }
  
 +#ifdef STE_HARDWARE
 +uint32_t OMXCodec::OmxToHALFormat(OMX_COLOR_FORMATTYPE omxValue) {
-+ switch (omxValue) {
-+ case OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB:
-+ return HAL_PIXEL_FORMAT_YCBCR42XMBN;
-+ case OMX_COLOR_FormatYUV420Planar:
-+ return HAL_PIXEL_FORMAT_YCbCr_420_P;
-+ default:
-+ ALOGI("Unknown OMX pixel format (0x%X), passing it on unchanged", omxValue);
-+ return omxValue;
-+ }
++    switch (omxValue) {
++        case OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB:
++            return HAL_PIXEL_FORMAT_YCBCR42XMBN;
++        case OMX_COLOR_FormatYUV420Planar:
++            return HAL_PIXEL_FORMAT_YCbCr_420_P;
++        default:
++            ALOGI("Unknown OMX pixel format (0x%X), passing it on unchanged", omxValue);
++            return omxValue;
++    }
 +}
 +#endif
 +
  // static
  void OMXCodec::findMatchingCodecs(
          const char *mime,
-@@ -354,6 +368,9 @@
-     if (info->hasQuirk("output-buffers-are-unreadable")) {
-         quirks |= kOutputBuffersAreUnreadable;
+@@ -361,6 +375,11 @@
+         quirks |= kRequiresGlobalFlush;
      }
+ 
++#ifdef STE_HARDWARE
 +    if (info->hasQuirk("requires-store-metadata-before-idle")) {
-+         quirks |= kRequiresStoreMetaDataBeforeIdle;
++      quirks |= kRequiresStoreMetaDataBeforeIdle;
 +    }
-     if (info->hasQuirk("requies-loaded-to-idle-after-allocation")) {
-         quirks |= kRequiresLoadedToIdleAfterAllocation;
-     }
-@@ -1021,6 +1038,7 @@
++#endif
+ #ifdef ENABLE_AV_ENHANCEMENTS
+     quirks |= ExtendedCodec::getComponentQuirks(info);
+ #endif
+@@ -1021,6 +1040,10 @@
          case OMX_COLOR_FormatYUV420Planar:
          case OMX_COLOR_FormatYUV420SemiPlanar:
          case OMX_TI_COLOR_FormatYUV420PackedSemiPlanar:
-+	case OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB:
++#ifdef STE_HARDWARE
++        case OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB:
++#endif
++
          /*
          * FIXME: For the Opaque color format, the frame size does not
          * need to be (w*h*3)/2. It just needs to
-@@ -1898,6 +1916,14 @@
+@@ -1808,6 +1831,10 @@
+             "video_decoder.mpeg4", NULL },
+         { MEDIA_MIMETYPE_VIDEO_H263,
+             "video_decoder.h263", "video_encoder.h263" },
++#ifdef STE_HARDWARE
++        { MEDIA_MIMETYPE_VIDEO_VC1,
++            "video_decoder.vc1", "video_encoder.vc1" },
++#endif
+         { MEDIA_MIMETYPE_VIDEO_VP8,
+             "video_decoder.vp8", "video_encoder.vp8" },
+         { MEDIA_MIMETYPE_VIDEO_VP9,
+@@ -1898,6 +1925,16 @@
      CHECK_EQ((int)mState, (int)LOADED);
  
      status_t err;
-+if ((mQuirks & kRequiresStoreMetaDataBeforeIdle)
-+ && (mFlags & kStoreMetaDataInVideoBuffers)) {
-+ err = mOMX->storeMetaDataInBuffers(mNode, kPortIndexInput, OMX_TRUE);
-+ if (err != OK) {
-+ ALOGE("Storing meta data in video buffers is not supported");
-+ return err;
-+ }
-+ }
++#ifdef STE_HARDWARE
++    if ((mQuirks & kRequiresStoreMetaDataBeforeIdle)
++        && (mFlags & kStoreMetaDataInVideoBuffers)) {
++        err = mOMX->storeMetaDataInBuffers(mNode, kPortIndexInput, OMX_TRUE);
++        if (err != OK) {
++            ALOGE("Storing meta data in video buffers is not supported");
++            return err;
++        }
++    }
++#endif
      if (!(mQuirks & kRequiresLoadedToIdleAfterAllocation)) {
          err = mOMX->sendCommand(mNode, OMX_CommandStateSet, OMX_StateIdle);
          CHECK_EQ(err, (status_t)OK);
-@@ -1960,7 +1986,8 @@
+@@ -1960,7 +1997,12 @@
      }
  
      status_t err = OK;
--    if ((mFlags & kStoreMetaDataInVideoBuffers)
++#ifdef STE_HARDWARE
 +    if (!(mQuirks & kRequiresStoreMetaDataBeforeIdle)
-+        && (mFlags & kStoreMetaDataInVideoBuffers)
++            && (mFlags & kStoreMetaDataInVideoBuffers)
++#else
+     if ((mFlags & kStoreMetaDataInVideoBuffers)
++#endif
              && portIndex == kPortIndexInput) {
          err = mOMX->storeMetaDataInBuffers(mNode, kPortIndexInput, OMX_TRUE);
          if (err != OK) {
-@@ -2161,7 +2188,7 @@
+@@ -2161,7 +2203,11 @@
              mNativeWindow.get(),
              def.format.video.nFrameWidth,
              def.format.video.nFrameHeight,
--            def.format.video.eColorFormat);
-+	    OmxToHALFormat(def.format.video.eColorFormat));
++#ifdef STE_HARDWARE
++            OmxToHALFormat(def.format.video.eColorFormat));
++#else
+             def.format.video.eColorFormat);
++#endif
  #else
      OMX_COLOR_FORMATTYPE eNativeColorFormat = def.format.video.eColorFormat;
      setNativeWindowColorFormat(eNativeColorFormat);
-Only in b/frameworks/av/media/libstagefright: OMXCodec.cpp.rej
+@@ -2253,7 +2299,12 @@
+     //    plus an extra buffer to account for incorrect minUndequeuedBufs
+     CODEC_LOGI("OMX-buffers: min=%u actual=%u undeq=%d+1",
+             def.nBufferCountMin, def.nBufferCountActual, minUndequeuedBufs);
+-
++#ifdef BOARD_CANT_REALLOCATE_OMX_BUFFERS
++    // Some devices don't like to set OMX_IndexParamPortDefinition at this
++    // point (even with an unmodified def), so skip it if possible.
++    // This check was present in KitKat.
++    if (def.nBufferCountActual < def.nBufferCountMin + minUndequeuedBufs) {
++#endif
+     for (OMX_U32 extraBuffers = 2 + 1; /* condition inside loop */; extraBuffers--) {
+         OMX_U32 newBufferCount =
+             def.nBufferCountMin + minUndequeuedBufs + extraBuffers;
+@@ -2275,6 +2326,9 @@
+     }
+     CODEC_LOGI("OMX-buffers: min=%u actual=%u undeq=%d+1",
+             def.nBufferCountMin, def.nBufferCountActual, minUndequeuedBufs);
++#ifdef BOARD_CANT_REALLOCATE_OMX_BUFFERS
++    }
++#endif
+ 
+     err = native_window_set_buffer_count(
+             mNativeWindow.get(), def.nBufferCountActual);
 diff -Bur '--exclude=.git' a/frameworks/av/services/audioflinger/AudioFlinger.cpp b/frameworks/av/services/audioflinger/AudioFlinger.cpp
 --- a/frameworks/av/services/audioflinger/AudioFlinger.cpp	2015-01-07 23:49:10.865883555 +0100
-+++ b/frameworks/av/services/audioflinger/AudioFlinger.cpp	2015-01-06 10:41:33.306580956 +0100
++++ b/frameworks/av/services/audioflinger/AudioFlinger.cpp	2015-01-13 17:56:56.740407123 +0100
 @@ -153,11 +153,14 @@
      if (rc) {
          goto out;
@@ -511,29 +574,28 @@ diff -Bur '--exclude=.git' a/frameworks/av/services/audioflinger/AudioFlinger.cp
  
          mHardwareStatus = AUDIO_HW_IDLE;
      }
-@@ -2020,7 +2027,11 @@
+@@ -2020,7 +2027,12 @@
          thread->audioConfigChanged(AudioSystem::OUTPUT_OPENED);
  
          // the first primary output opened designates the primary hw device
 +#ifdef STE_HARDWARE
-+        if (mPrimaryHardwareDev == NULL) {
++        if ( mPrimaryHardwareDev == NULL ) {
 +#else
          if ((mPrimaryHardwareDev == NULL) && (flags & AUDIO_OUTPUT_FLAG_PRIMARY)) {
 +#endif
++
              ALOGI("Using module %d has the primary audio interface", module);
              mPrimaryHardwareDev = thread->getOutput()->audioHwDev;
  
-Only in b/frameworks/av/services/audiopolicy: AudioPolicyInterfaceImplLegacy.cpp.rej
-diff -Bur '--exclude=.git' a/frameworks/av/services/camera/libcameraservice/device1/CameraHardwareInterface.h b/frameworks/av/services/camera/libcameraservice/device1/CameraHardwareInterface.h
---- a/frameworks/av/services/camera/libcameraservice/device1/CameraHardwareInterface.h	2015-01-07 23:49:10.893883554 +0100
-+++ b/frameworks/av/services/camera/libcameraservice/device1/CameraHardwareInterface.h	2015-01-06 10:37:17.790589936 +0100
-@@ -690,7 +690,8 @@
- 
-     static int __set_usage(struct preview_stream_ops* w, int usage)
-     {
--        ANativeWindow *a = anw(w);
-+        usage |= GRALLOC_USAGE_PRIVATE_0;
-+	ANativeWindow *a = anw(w);
-         return native_window_set_usage(a, usage);
-     }
- 
+diff -Bur '--exclude=.git' a/frameworks/av/services/audiopolicy/AudioPolicyService.cpp b/frameworks/av/services/audiopolicy/AudioPolicyService.cpp
+--- a/frameworks/av/services/audiopolicy/AudioPolicyService.cpp	2015-01-07 23:49:10.885883555 +0100
++++ b/frameworks/av/services/audiopolicy/AudioPolicyService.cpp	2015-01-13 17:49:24.612423014 +0100
+@@ -939,6 +939,8 @@
+                                        const char *keyValuePairs,
+                                        int delayMs)
+ {
++    ALOGI("Meticulus: params=%s",keyValuePairs);
++    if(strcmp("voip=on",keyValuePairs) == 0) return;
+     mAudioCommandThread->parametersCommand(ioHandle, keyValuePairs,
+                                            delayMs);
+ }

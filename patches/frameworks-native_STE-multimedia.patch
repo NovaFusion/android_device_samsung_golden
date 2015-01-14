@@ -1,6 +1,6 @@
-diff -Bur '--exclude=.git' a/frameworks/native/include/binder/MemoryBase.h a/frameworks/native/include/binder/MemoryBase.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/binder/MemoryBase.h b/frameworks/native/include/binder/MemoryBase.h
 --- a/frameworks/native/include/binder/MemoryBase.h	2015-01-07 23:52:19.809876915 +0100
-+++ a/frameworks/native/include/binder/MemoryBase.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/binder/MemoryBase.h	2015-01-13 17:51:26.796418719 +0100
 @@ -38,6 +38,9 @@
      size_t getSize() const { return mSize; }
      ssize_t getOffset() const { return mOffset; }
@@ -11,9 +11,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/binder/MemoryBase.h a/fra
  
  private:
      size_t          mSize;
-diff -Bur '--exclude=.git' a/frameworks/native/include/binder/Parcel.h a/frameworks/native/include/binder/Parcel.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/binder/Parcel.h b/frameworks/native/include/binder/Parcel.h
 --- a/frameworks/native/include/binder/Parcel.h	2015-01-07 23:52:19.809876915 +0100
-+++ a/frameworks/native/include/binder/Parcel.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/binder/Parcel.h	2015-01-13 17:51:26.796418719 +0100
 @@ -28,8 +28,12 @@
  // ---------------------------------------------------------------------------
  namespace android {
@@ -28,35 +28,34 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/binder/Parcel.h a/framewo
  class IBinder;
  class IPCThreadState;
  class ProcessState;
-@@ -106,9 +110,12 @@
+@@ -106,8 +110,12 @@
      status_t            writeInt32Array(size_t len, const int32_t *val);
      status_t            writeByteArray(size_t len, const uint8_t *val);
  
 +#ifdef STE_HARDWARE
-+ status_t               write(const Flattenable& val);
++    status_t            write(const Flattenable& val);
 +#else
      template<typename T>
      status_t            write(const Flattenable<T>& val);
--
 +#endif
+ 
      template<typename T>
      status_t            write(const LightFlattenable<T>& val);
- 
-@@ -168,9 +175,12 @@
+@@ -167,9 +175,12 @@
+     const char16_t*     readString16Inplace(size_t* outLen) const;
      sp<IBinder>         readStrongBinder() const;
      wp<IBinder>         readWeakBinder() const;
- 
+-
 +#ifdef STE_HARDWARE
-+    status_t read(Flattenable& val) const;
++    status_t            read(Flattenable& val) const;
 +#else
      template<typename T>
      status_t            read(Flattenable<T>& val) const;
--
 +#endif
+ 
      template<typename T>
      status_t            read(LightFlattenable<T>& val) const;
- 
-@@ -284,19 +294,25 @@
+@@ -284,7 +295,7 @@
  
      class FlattenableHelperInterface {
      protected:
@@ -65,10 +64,10 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/binder/Parcel.h a/framewo
      public:
          virtual size_t getFlattenedSize() const = 0;
          virtual size_t getFdCount() const = 0;
-         virtual status_t flatten(void* buffer, size_t size, int* fds, size_t count) const = 0;
+@@ -292,11 +303,18 @@
          virtual status_t unflatten(void const* buffer, size_t size, int const* fds, size_t count) = 0;
      };
--
+ 
 +#ifndef STE_HARDWARE
      template<typename T>
 +#endif
@@ -84,7 +83,7 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/binder/Parcel.h a/framewo
  
      public:
          virtual size_t getFlattenedSize() const {
-@@ -309,7 +325,11 @@
+@@ -309,7 +327,11 @@
              return val.flatten(buffer, size, fds, count);
          }
          virtual status_t unflatten(void const* buffer, size_t size, int const* fds, size_t count) {
@@ -96,7 +95,7 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/binder/Parcel.h a/framewo
          }
      };
      status_t write(const FlattenableHelperInterface& val);
-@@ -331,11 +351,13 @@
+@@ -331,11 +353,13 @@
  
  // ---------------------------------------------------------------------------
  
@@ -110,7 +109,7 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/binder/Parcel.h a/framewo
  
  template<typename T>
  status_t Parcel::write(const LightFlattenable<T>& val) {
-@@ -355,11 +377,13 @@
+@@ -355,11 +379,13 @@
      return NO_ERROR;
  }
  
@@ -124,9 +123,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/binder/Parcel.h a/framewo
  
  template<typename T>
  status_t Parcel::read(LightFlattenable<T>& val) const {
-diff -Bur '--exclude=.git' a/frameworks/native/include/gui/BufferItem.h a/frameworks/native/include/gui/BufferItem.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/gui/BufferItem.h b/frameworks/native/include/gui/BufferItem.h
 --- a/frameworks/native/include/gui/BufferItem.h	2015-01-07 23:52:19.809876915 +0100
-+++ a/frameworks/native/include/gui/BufferItem.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/gui/BufferItem.h	2015-01-13 17:51:26.796418719 +0100
 @@ -32,8 +32,8 @@
  class Fence;
  class GraphicBuffer;
@@ -138,9 +137,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/gui/BufferItem.h a/framew
      size_t getPodSize() const;
      size_t getFlattenedSize() const;
      size_t getFdCount() const;
-diff -Bur '--exclude=.git' a/frameworks/native/include/gui/BufferQueue.h a/frameworks/native/include/gui/BufferQueue.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/gui/BufferQueue.h b/frameworks/native/include/gui/BufferQueue.h
 --- a/frameworks/native/include/gui/BufferQueue.h	2015-01-07 23:52:19.809876915 +0100
-+++ a/frameworks/native/include/gui/BufferQueue.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/gui/BufferQueue.h	2015-01-13 17:51:26.796418719 +0100
 @@ -41,6 +41,10 @@
          PRESENT_LATER = IGraphicBufferConsumer::PRESENT_LATER,
      };
@@ -152,9 +151,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/gui/BufferQueue.h a/frame
      // When in async mode we reserve two slots in order to guarantee that the
      // producer and consumer can run asynchronously.
      enum { MAX_MAX_ACQUIRED_BUFFERS = NUM_BUFFER_SLOTS - 2 };
-diff -Bur '--exclude=.git' a/frameworks/native/include/gui/ConsumerBase.h a/frameworks/native/include/gui/ConsumerBase.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/gui/ConsumerBase.h b/frameworks/native/include/gui/ConsumerBase.h
 --- a/frameworks/native/include/gui/ConsumerBase.h	2015-01-07 23:52:19.813876915 +0100
-+++ a/frameworks/native/include/gui/ConsumerBase.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/gui/ConsumerBase.h	2015-01-13 17:51:26.796418719 +0100
 @@ -167,7 +167,10 @@
              const sp<GraphicBuffer> graphicBuffer,
              EGLDisplay display, EGLSyncKHR eglFence);
@@ -167,9 +166,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/gui/ConsumerBase.h a/fram
      bool stillTracking(int slot, const sp<GraphicBuffer> graphicBuffer);
  
      // addReleaseFence* adds the sync points associated with a fence to the set
-diff -Bur '--exclude=.git' a/frameworks/native/include/gui/GLConsumer.h a/frameworks/native/include/gui/GLConsumer.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/gui/GLConsumer.h b/frameworks/native/include/gui/GLConsumer.h
 --- a/frameworks/native/include/gui/GLConsumer.h	2015-01-07 23:52:19.813876915 +0100
-+++ a/frameworks/native/include/gui/GLConsumer.h	2015-01-06 10:44:51.794573980 +0100
++++ b/frameworks/native/include/gui/GLConsumer.h	2015-01-13 17:51:26.796418719 +0100
 @@ -30,6 +30,11 @@
  #include <utils/Vector.h>
  #include <utils/threads.h>
@@ -187,7 +186,7 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/gui/GLConsumer.h a/framew
              bool useFenceSync, bool isControlledByApp);
  
 +#ifdef STE_HARDWARE
-+    // Method for closing copybit device while abandoning the surface
++    // Method for closing copybit device while abandoning the surface 
 +    virtual ~GLConsumer();
 +#endif
 +
@@ -215,31 +214,19 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/gui/GLConsumer.h a/framew
      status_t releaseBufferLocked(int slot,
              const sp<GraphicBuffer> graphicBuffer, EGLSyncKHR eglFence) {
          return releaseBufferLocked(slot, graphicBuffer, mEglDisplay, eglFence);
-@@ -304,6 +321,11 @@
-         const native_handle* graphicBufferHandle() {
-             return mGraphicBuffer == NULL ? NULL : mGraphicBuffer->handle;
-         }
-+#ifdef STE_HARDWARE
-+        void setGraphicBuffer(sp<GraphicBuffer> graphicBuffer) {
-+            mGraphicBuffer = graphicBuffer;
-+        }
-+#endif
- 
-     private:
-         // Only allow instantiation using ref counting.
-@@ -314,6 +336,11 @@
+@@ -314,6 +331,11 @@
          EGLImageKHR createImage(EGLDisplay dpy,
                  const sp<GraphicBuffer>& graphicBuffer, const Rect& crop);
  
 +#ifdef STE_HARDWARE
-+        // converts buffer to a suitable color format
-+        status_t convert(sp<GraphicBuffer> &srcBuf, sp<GraphicBuffer> &dstBuf);
++    // converts buffer to a suitable color format
++    status_t convert(sp<GraphicBuffer> &srcBuf, sp<GraphicBuffer> &dstBuf);
 +#endif
 +
          // Disallow copying
          EglImage(const EglImage& rhs);
          void operator = (const EglImage& rhs);
-@@ -475,6 +502,22 @@
+@@ -475,6 +497,22 @@
      // reset mCurrentTexture to INVALID_BUFFER_SLOT.
      int mCurrentTexture;
  
@@ -262,9 +249,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/gui/GLConsumer.h a/framew
      // mAttached indicates whether the ConsumerBase is currently attached to
      // an OpenGL ES context.  For legacy reasons, this is initialized to true,
      // indicating that the ConsumerBase is considered to be attached to
-diff -Bur '--exclude=.git' a/frameworks/native/include/gui/IGraphicBufferConsumer.h a/frameworks/native/include/gui/IGraphicBufferConsumer.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/gui/IGraphicBufferConsumer.h b/frameworks/native/include/gui/IGraphicBufferConsumer.h
 --- a/frameworks/native/include/gui/IGraphicBufferConsumer.h	2015-01-07 23:52:19.813876915 +0100
-+++ a/frameworks/native/include/gui/IGraphicBufferConsumer.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/gui/IGraphicBufferConsumer.h	2015-01-13 17:51:26.796418719 +0100
 @@ -43,8 +43,12 @@
  public:
  
@@ -278,9 +265,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/gui/IGraphicBufferConsume
          size_t getPodSize() const;
          size_t getFlattenedSize() const;
          size_t getFdCount() const;
-diff -Bur '--exclude=.git' a/frameworks/native/include/gui/IGraphicBufferProducer.h a/frameworks/native/include/gui/IGraphicBufferProducer.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/gui/IGraphicBufferProducer.h b/frameworks/native/include/gui/IGraphicBufferProducer.h
 --- a/frameworks/native/include/gui/IGraphicBufferProducer.h	2015-01-07 23:52:19.813876915 +0100
-+++ a/frameworks/native/include/gui/IGraphicBufferProducer.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/gui/IGraphicBufferProducer.h	2015-01-13 17:51:26.796418719 +0100
 @@ -262,8 +262,12 @@
      //              * the slot was enqueued without requesting a buffer
      //              * crop rect is out of bounds of the buffer dimensions
@@ -294,9 +281,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/gui/IGraphicBufferProduce
          inline QueueBufferInput(const Parcel& parcel);
          // timestamp - a monotonically increasing value in nanoseconds
          // isAutoTimestamp - if the timestamp was synthesized at queue time
-diff -Bur '--exclude=.git' a/frameworks/native/include/media/openmax/OMX_IVCommon.h a/frameworks/native/include/media/openmax/OMX_IVCommon.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/media/openmax/OMX_IVCommon.h b/frameworks/native/include/media/openmax/OMX_IVCommon.h
 --- a/frameworks/native/include/media/openmax/OMX_IVCommon.h	2015-01-07 23:52:19.817876915 +0100
-+++ a/frameworks/native/include/media/openmax/OMX_IVCommon.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/media/openmax/OMX_IVCommon.h	2015-01-13 17:51:26.796418719 +0100
 @@ -165,6 +165,9 @@
      OMX_COLOR_FormatYUV420Flexible = 0x7F420888,
  
@@ -307,9 +294,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/media/openmax/OMX_IVCommo
      OMX_QCOM_COLOR_FormatYVU420SemiPlanar = 0x7FA30C00,
      OMX_QCOM_COLOR_FormatYUV420PackedSemiPlanar64x32Tile2m8ka = 0x7FA30C03,
      OMX_SEC_COLOR_FormatNV12Tiled = 0x7FC00002,
-diff -Bur '--exclude=.git' a/frameworks/native/include/ui/Fence.h a/frameworks/native/include/ui/Fence.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/ui/Fence.h b/frameworks/native/include/ui/Fence.h
 --- a/frameworks/native/include/ui/Fence.h	2015-01-07 23:52:19.821876914 +0100
-+++ a/frameworks/native/include/ui/Fence.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/ui/Fence.h	2015-01-13 17:51:26.796418719 +0100
 @@ -36,7 +36,11 @@
  // ===========================================================================
  
@@ -322,37 +309,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/ui/Fence.h a/frameworks/n
  {
  public:
      static const sp<Fence> NO_FENCE;
-diff -Bur '--exclude=.git' a/frameworks/native/include/ui/FramebufferNativeWindow.h a/frameworks/native/include/ui/FramebufferNativeWindow.h
---- a/frameworks/native/include/ui/FramebufferNativeWindow.h	2015-01-07 23:52:19.821876914 +0100
-+++ a/frameworks/native/include/ui/FramebufferNativeWindow.h	2015-01-06 10:45:12.578573250 +0100
-@@ -30,8 +30,12 @@
- #include <ui/ANativeObjectBase.h>
- #include <ui/Rect.h>
- 
-+#ifdef STE_SAMSUNG_HARDWARE
-+#define NUM_FRAME_BUFFERS 3
-+#else
- #define MIN_NUM_FRAME_BUFFERS  2
- #define MAX_NUM_FRAME_BUFFERS  3
-+#endif
- 
- extern "C" EGLNativeWindowType android_createDisplaySurface(void);
- 
-@@ -80,7 +84,11 @@
-     framebuffer_device_t* fbDev;
-     alloc_device_t* grDev;
- 
-+#ifdef STE_SAMSUNG_HARDWARE
-+    sp<NativeBuffer> buffers[NUM_FRAME_BUFFERS];
-+#else
-     sp<NativeBuffer> buffers[MAX_NUM_FRAME_BUFFERS];
-+#endif
-     sp<NativeBuffer> front;
-     
-     mutable Mutex mutex;
-diff -Bur '--exclude=.git' a/frameworks/native/include/ui/GraphicBuffer.h a/frameworks/native/include/ui/GraphicBuffer.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/ui/GraphicBuffer.h b/frameworks/native/include/ui/GraphicBuffer.h
 --- a/frameworks/native/include/ui/GraphicBuffer.h	2015-01-07 23:52:19.821876914 +0100
-+++ a/frameworks/native/include/ui/GraphicBuffer.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/ui/GraphicBuffer.h	2015-01-13 17:51:26.796418719 +0100
 @@ -38,10 +38,18 @@
  // ===========================================================================
  
@@ -373,14 +332,13 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/ui/GraphicBuffer.h a/fram
  public:
  
      enum {
-diff -Bur '--exclude=.git' a/frameworks/native/include/ui/PixelFormat.h a/frameworks/native/include/ui/PixelFormat.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/ui/PixelFormat.h b/frameworks/native/include/ui/PixelFormat.h
 --- a/frameworks/native/include/ui/PixelFormat.h	2015-01-07 23:52:19.821876914 +0100
-+++ a/frameworks/native/include/ui/PixelFormat.h	2015-01-06 10:41:47.854580445 +0100
-@@ -65,6 +65,16 @@
++++ b/frameworks/native/include/ui/PixelFormat.h	2015-01-13 17:51:26.796418719 +0100
+@@ -65,6 +65,15 @@
      PIXEL_FORMAT_RGBA_4444   = 7,                            // 16-bit ARGB
      PIXEL_FORMAT_sRGB_A_8888 = HAL_PIXEL_FORMAT_sRGB_A_8888, // 4x8-bit sRGB + A
      PIXEL_FORMAT_sRGB_X_8888 = HAL_PIXEL_FORMAT_sRGB_X_8888, // 4x8-bit sRGB, no A
-+
 +
 +#ifdef STE_HARDWARE
 +    // Added Support for YUV42XMBN,
@@ -393,9 +351,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/ui/PixelFormat.h a/framew
  };
  
  typedef int32_t PixelFormat;
-diff -Bur '--exclude=.git' a/frameworks/native/include/ui/Region.h a/frameworks/native/include/ui/Region.h
+diff -Bur '--exclude=.git' a/frameworks/native/include/ui/Region.h b/frameworks/native/include/ui/Region.h
 --- a/frameworks/native/include/ui/Region.h	2015-01-07 23:52:19.821876914 +0100
-+++ a/frameworks/native/include/ui/Region.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/include/ui/Region.h	2015-01-13 17:51:26.796418719 +0100
 @@ -25,6 +25,10 @@
  #include <ui/Rect.h>
  #include <utils/Flattenable.h>
@@ -434,14 +392,13 @@ diff -Bur '--exclude=.git' a/frameworks/native/include/ui/Region.h a/frameworks/
  }; // namespace android
  
  #endif // ANDROID_UI_REGION_H
-diff -Bur '--exclude=.git' a/frameworks/native/libs/binder/MemoryBase.cpp a/frameworks/native/libs/binder/MemoryBase.cpp
+diff -Bur '--exclude=.git' a/frameworks/native/libs/binder/MemoryBase.cpp b/frameworks/native/libs/binder/MemoryBase.cpp
 --- a/frameworks/native/libs/binder/MemoryBase.cpp	2015-01-07 23:52:19.825876914 +0100
-+++ a/frameworks/native/libs/binder/MemoryBase.cpp	2015-01-06 10:51:27.330560079 +0100
-@@ -25,6 +25,11 @@
++++ b/frameworks/native/libs/binder/MemoryBase.cpp	2015-01-13 17:51:26.796418719 +0100
+@@ -25,6 +25,10 @@
  
  // ---------------------------------------------------------------------------
  
-+
 +#ifdef STE_HARDWARE
 +extern "C" void _ZN7android10MemoryBaseC2ERKNS_2spINS_11IMemoryHeapEEElj() __attribute__((alias("_ZN7android10MemoryBaseC1ERKNS_2spINS_11IMemoryHeapEEElj")));
 +#endif
@@ -449,7 +406,7 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/binder/MemoryBase.cpp a/fram
  MemoryBase::MemoryBase(const sp<IMemoryHeap>& heap,
          ssize_t offset, size_t size)
      : mSize(size), mOffset(offset), mHeap(heap)
-@@ -42,13 +47,26 @@
+@@ -42,6 +46,21 @@
  {
  }
  
@@ -468,21 +425,12 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/binder/MemoryBase.cpp a/fram
 +}
 +#endif
 +
-+
  // ---------------------------------------------------------------------------
  }; // namespace android
  
--#ifndef __LP64__
--// Backwards compatibility for libdatabase_sqlcipher (http://b/8253769).
- extern "C" void _ZN7android10MemoryBaseC1ERKNS_2spINS_11IMemoryHeapEEEij(void*, void*, ssize_t, size_t);
- extern "C" void _ZN7android10MemoryBaseC1ERKNS_2spINS_11IMemoryHeapEEElj(void* obj, void* h, long o, unsigned int size) {
-     _ZN7android10MemoryBaseC1ERKNS_2spINS_11IMemoryHeapEEEij(obj, h, o, size);
- }
--#endif
-Only in a/frameworks/native/libs/binder: MemoryBase.cpp.rej
-diff -Bur '--exclude=.git' a/frameworks/native/libs/binder/Parcel.cpp a/frameworks/native/libs/binder/Parcel.cpp
+diff -Bur '--exclude=.git' a/frameworks/native/libs/binder/Parcel.cpp b/frameworks/native/libs/binder/Parcel.cpp
 --- a/frameworks/native/libs/binder/Parcel.cpp	2015-01-07 23:52:19.825876914 +0100
-+++ a/frameworks/native/libs/binder/Parcel.cpp	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/libs/binder/Parcel.cpp	2015-01-13 17:51:26.800418719 +0100
 @@ -875,6 +875,13 @@
      return status;
  }
@@ -511,9 +459,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/binder/Parcel.cpp a/framewor
  status_t Parcel::read(FlattenableHelperInterface& val) const
  {
      // size
-diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/Android.mk a/frameworks/native/libs/gui/Android.mk
+diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/Android.mk b/frameworks/native/libs/gui/Android.mk
 --- a/frameworks/native/libs/gui/Android.mk	2015-01-07 23:52:19.825876914 +0100
-+++ a/frameworks/native/libs/gui/Android.mk	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/libs/gui/Android.mk	2015-01-13 17:51:26.800418719 +0100
 @@ -44,6 +44,7 @@
  	libsync \
  	libui \
@@ -522,9 +470,23 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/Android.mk a/frameworks/
  	liblog
  
  # Executed only on QCOM BSPs
-diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/ConsumerBase.cpp a/frameworks/native/libs/gui/ConsumerBase.cpp
+diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/BufferQueueProducer.cpp b/frameworks/native/libs/gui/BufferQueueProducer.cpp
+--- a/frameworks/native/libs/gui/BufferQueueProducer.cpp	2015-01-07 23:52:19.829876914 +0100
++++ b/frameworks/native/libs/gui/BufferQueueProducer.cpp	2015-01-13 17:51:26.800418719 +0100
+@@ -272,7 +272,9 @@
+         if (format == 0) {
+             format = mCore->mDefaultBufferFormat;
+         }
+-
++        if (format == 0x7FA00000) {
++            format = HAL_PIXEL_FORMAT_YCBCR42XMBN;
++        }
+         // Enable the usage bits the consumer requested
+         usage |= mCore->mConsumerUsageBits;
+ 
+diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/ConsumerBase.cpp b/frameworks/native/libs/gui/ConsumerBase.cpp
 --- a/frameworks/native/libs/gui/ConsumerBase.cpp	2015-01-07 23:52:19.829876914 +0100
-+++ a/frameworks/native/libs/gui/ConsumerBase.cpp	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/libs/gui/ConsumerBase.cpp	2015-01-13 17:51:26.800418719 +0100
 @@ -146,7 +146,7 @@
  }
  
@@ -534,9 +496,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/ConsumerBase.cpp a/frame
      for (int i =0; i < BufferQueue::NUM_BUFFER_SLOTS; i++) {
          freeBufferLocked(i);
      }
-diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/GLConsumer.cpp a/frameworks/native/libs/gui/GLConsumer.cpp
+diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/GLConsumer.cpp b/frameworks/native/libs/gui/GLConsumer.cpp
 --- a/frameworks/native/libs/gui/GLConsumer.cpp	2015-01-07 23:52:19.829876914 +0100
-+++ a/frameworks/native/libs/gui/GLConsumer.cpp	2015-01-06 10:44:51.794573980 +0100
++++ b/frameworks/native/libs/gui/GLConsumer.cpp	2015-01-13 17:51:26.800418719 +0100
 @@ -133,6 +133,9 @@
      mEglDisplay(EGL_NO_DISPLAY),
      mEglContext(EGL_NO_CONTEXT),
@@ -547,7 +509,7 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/GLConsumer.cpp a/framewo
      mAttached(true)
  {
      ST_LOGV("GLConsumer");
-@@ -170,6 +173,21 @@
+@@ -140,6 +143,21 @@
      memcpy(mCurrentTransformMatrix, mtxIdentity,
              sizeof(mCurrentTransformMatrix));
  
@@ -567,8 +529,8 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/GLConsumer.cpp a/framewo
 +#endif
 +
      mConsumer->setConsumerUsageBits(DEFAULT_USAGE_FLAGS);
- }
- 
+ #ifdef QCOM_BSP
+     mCurrentDirtyRect.clear();
 @@ -178,6 +196,16 @@
      return mConsumer->setDefaultMaxBufferCount(bufferCount);
  }
@@ -611,14 +573,20 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/GLConsumer.cpp a/framewo
  status_t GLConsumer::updateAndReleaseLocked(const BufferQueue::BufferItem& item)
  {
      status_t err = NO_ERROR;
-@@ -387,12 +433,66 @@
-         return err;
-     }
- 
+@@ -392,6 +438,61 @@
+     // ConsumerBase.
+     // We may have to do this even when item.mGraphicBuffer == NULL (which
+     // means the buffer was previously acquired).
++
 +#ifdef STE_HARDWARE
 +    sp<GraphicBuffer> textureBuffer;
-+    if (mSlots[buf].mGraphicBuffer->getPixelFormat() == HAL_PIXEL_FORMAT_YCBCR42XMBN 
++    if (mSlots[buf].mGraphicBuffer->getPixelFormat() == HAL_PIXEL_FORMAT_YCBCR42XMBN
 +     || mSlots[buf].mGraphicBuffer->getPixelFormat() == HAL_PIXEL_FORMAT_YCbCr_420_P) {
++        /* deallocate image each time .... */
++        /*if (&mEglSlots[buf].mEglImage != EGL_NO_IMAGE_KHR) {
++            eglDestroyImageKHR(mEglDisplay, &mEglSlots[buf].mEglImage);
++            mEglSlots[buf].mEglImage = (android::GLConsumer::EglImage*)EGL_NO_IMAGE_KHR;
++        }*/
 +        /* test if source and convert buffer size are ok */
 +        if (mSlots[buf].mGraphicBuffer != NULL && mBlitSlots[mNextBlitSlot] != NULL) {
 +            sp<GraphicBuffer> srcBuf = mSlots[buf].mGraphicBuffer;
@@ -629,6 +597,13 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/GLConsumer.cpp a/framewo
 +        }
 +        /* allocate convert buffer if needed */
 +        if (mBlitSlots[mNextBlitSlot] == NULL) {
++	    if(mGraphicBufferAlloc == NULL) {
++		
++		/* For some reason this is not being initialized in the constructor.
++		   So, we will create it here if it's null. */
++    		sp<ISurfaceComposer> composer(ComposerService::getComposerService());
++                mGraphicBufferAlloc = composer->createGraphicBufferAlloc();
++	    }
 +            status_t res;
 +            sp<GraphicBuffer> srcBuf = mSlots[buf].mGraphicBuffer;
 +            sp<GraphicBuffer> dstBuf(mGraphicBufferAlloc->createGraphicBuffer(srcBuf->getWidth(),
@@ -652,50 +627,40 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/GLConsumer.cpp a/framewo
 +            return UNKNOWN_ERROR;
 +        }
 +        textureBuffer = mBlitSlots[mNextBlitSlot];
++        mEglSlots[buf].mEglImage = new EglImage(textureBuffer);
 +        mNextBlitSlot = (mNextBlitSlot + 1) % BufferQueue::NUM_BLIT_BUFFER_SLOTS;
-+    }
-+    else {
-+        textureBuffer = mSlots[buf].mGraphicBuffer;
-+    }
-+
-+    // Set EglImage to use the new textureBuffer
-+    mEglSlots[buf].mEglImage->setGraphicBuffer(textureBuffer);
++    } 
 +#endif
 +
-     // Ensure we have a valid EglImageKHR for the slot, creating an EglImage
-     // if nessessary, for the gralloc buffer currently in the slot in
-     // ConsumerBase.
-     // We may have to do this even when item.mGraphicBuffer == NULL (which
-     // means the buffer was previously acquired).
-+
-+#ifdef STE_HARDWARE
-+    // Force EglImage to destroy old eglImage and create a new one
-+    // using textureBuffer.
-+    err = mEglSlots[buf].mEglImage->createIfNeeded(mEglDisplay, item.mCrop, true);
-+#else
      err = mEglSlots[buf].mEglImage->createIfNeeded(mEglDisplay, item.mCrop);
-+#endif
      if (err != NO_ERROR) {
          ST_LOGW("updateAndRelease: unable to createImage on display=%p slot=%d",
-                 mEglDisplay, buf);
-@@ -408,7 +508,11 @@
+@@ -408,8 +509,7 @@
          // release the old buffer, so instead we just drop the new frame.
          // As we are still under lock since acquireBuffer, it is safe to
          // release by slot.
-+#ifdef STE_HARDWARE
-+        releaseBufferLocked(buf, textureBuffer,
-+#else        
-         releaseBufferLocked(buf, mSlots[buf].mGraphicBuffer,
-+#endif
-                 mEglDisplay, EGL_NO_SYNC_KHR);
+-        releaseBufferLocked(buf, mSlots[buf].mGraphicBuffer,
+-                mEglDisplay, EGL_NO_SYNC_KHR);
++        releaseBufferLocked(buf, mSlots[buf].mGraphicBuffer, mEglDisplay, EGL_NO_SYNC_KHR);
          return err;
      }
-@@ -1045,6 +1149,49 @@
+ 
+@@ -1045,6 +1145,59 @@
      ConsumerBase::dumpLocked(result, prefix);
  }
  
 +#ifdef STE_HARDWARE
 +status_t GLConsumer::convert(sp<GraphicBuffer> &srcBuf, sp<GraphicBuffer> &dstBuf) {
++
++    /* For some reason mBlitEngine is not being initialized in
++       the constructor so we init' it before we use it. */
++    hw_module_t const* module;
++    if(mBlitEngine == NULL) {
++        if (hw_get_module(COPYBIT_HARDWARE_MODULE_ID, &module) == 0) {
++            copybit_open(module, &mBlitEngine);
++        }
++    }
++
 +    copybit_image_t dstImg;
 +    dstImg.w = dstBuf->getWidth();
 +    dstImg.h = dstBuf->getHeight();
@@ -727,7 +692,7 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/GLConsumer.cpp a/framewo
 +    mBlitEngine->set_parameter(mBlitEngine, COPYBIT_DITHER, COPYBIT_ENABLE);
 +
 +    int err = mBlitEngine->stretch(
-+    mBlitEngine, &dstImg, &srcImg, &dstCrop, &srcCrop, &clip);
++            mBlitEngine, &dstImg, &srcImg, &dstCrop, &srcCrop, &clip);
 +    if (err != 0) {
 +        ALOGE("\nError: Blit stretch operation failed (err:%d)\n", err);
 +        /* return ok to not block decoding. But why this error ? */
@@ -740,56 +705,43 @@ diff -Bur '--exclude=.git' a/frameworks/native/libs/gui/GLConsumer.cpp a/framewo
  static void mtxMul(float out[16], const float a[16], const float b[16]) {
      out[0] = a[0]*b[0] + a[4]*b[1] + a[8]*b[2] + a[12]*b[3];
      out[1] = a[1]*b[0] + a[5]*b[1] + a[9]*b[2] + a[13]*b[3];
-diff -Bur '--exclude=.git' a/frameworks/native/libs/ui/FramebufferNativeWindow.cpp a/frameworks/native/libs/ui/FramebufferNativeWindow.cpp
+diff -Bur '--exclude=.git' a/frameworks/native/libs/ui/FramebufferNativeWindow.cpp b/frameworks/native/libs/ui/FramebufferNativeWindow.cpp
 --- a/frameworks/native/libs/ui/FramebufferNativeWindow.cpp	2015-01-07 23:52:19.837876914 +0100
-+++ a/frameworks/native/libs/ui/FramebufferNativeWindow.cpp	2015-01-06 10:45:12.578573250 +0100
++++ b/frameworks/native/libs/ui/FramebufferNativeWindow.cpp	2015-01-13 22:23:07.551845829 +0100
 @@ -93,12 +93,16 @@
          mUpdateOnDemand = (fbDev->setUpdateRect != 0);
          
          // initialize the buffer FIFO
-+#ifdef STE_SAMSUNG_HARDWARE
-+        mNumBuffers = NUM_FRAME_BUFFERS;
-+#else
++#ifndef STE_HARDWARE
          if(fbDev->numFramebuffers >= MIN_NUM_FRAME_BUFFERS &&
             fbDev->numFramebuffers <= MAX_NUM_FRAME_BUFFERS){
              mNumBuffers = fbDev->numFramebuffers;
          } else {
              mNumBuffers = MIN_NUM_FRAME_BUFFERS;
          }
++#else
++        mNumBuffers = MAX_NUM_FRAME_BUFFERS;
 +#endif
          mNumFreeBuffers = mNumBuffers;
          mBufferHead = mNumBuffers-1;
  
-@@ -244,7 +248,11 @@
-         self->mBufferHead = 0;
- 
-     // wait for a free non-front buffer
-+#ifdef STE_SAMSUNG_HARDWARE
-+    while (self->mNumFreeBuffers < NUM_FRAME_BUFFERS) {
-+#else
-     while (self->mNumFreeBuffers < 2) {
-+#endif
-         self->mCondition.wait(self->mutex);
-     }
-     ALOG_ASSERT(self->buffers[index] != self->front);
-diff -Bur '--exclude=.git' a/frameworks/native/libs/ui/PixelFormat.cpp a/frameworks/native/libs/ui/PixelFormat.cpp
+diff -Bur '--exclude=.git' a/frameworks/native/libs/ui/PixelFormat.cpp b/frameworks/native/libs/ui/PixelFormat.cpp
 --- a/frameworks/native/libs/ui/PixelFormat.cpp	2015-01-07 23:52:19.837876914 +0100
-+++ a/frameworks/native/libs/ui/PixelFormat.cpp	2015-01-06 10:41:47.854580445 +0100
-@@ -158,6 +158,11 @@
-         case PIXEL_FORMAT_RGBA_5551:
-         case PIXEL_FORMAT_RGBA_4444:
-             return 16;
++++ b/frameworks/native/libs/ui/PixelFormat.cpp	2015-01-13 17:51:26.800418719 +0100
+@@ -90,6 +90,10 @@
+     case HAL_PIXEL_FORMAT_YCbCr_422_I:
+         info->bitsPerPixel = 16;
+         goto done;
 +#ifdef STE_HARDWARE
-+        case HAL_PIXEL_FORMAT_YCbCr_420_P:
-+        case HAL_PIXEL_FORMAT_YCBCR42XMBN:
-+            return 12;
++    case HAL_PIXEL_FORMAT_YCbCr_420_P:
++    case HAL_PIXEL_FORMAT_YCBCR42XMBN:
 +#endif
-     }
-     return BAD_VALUE;
- }
-diff -Bur '--exclude=.git' a/frameworks/native/opengl/include/EGL/eglext.h a/frameworks/native/opengl/include/EGL/eglext.h
+     case HAL_PIXEL_FORMAT_YCrCb_420_SP:
+     case HAL_PIXEL_FORMAT_YV12:
+         info->bitsPerPixel = 12;
+diff -Bur '--exclude=.git' a/frameworks/native/opengl/include/EGL/eglext.h b/frameworks/native/opengl/include/EGL/eglext.h
 --- a/frameworks/native/opengl/include/EGL/eglext.h	2015-01-07 23:52:19.837876914 +0100
-+++ a/frameworks/native/opengl/include/EGL/eglext.h	2015-01-06 10:41:47.854580445 +0100
++++ b/frameworks/native/opengl/include/EGL/eglext.h	2015-01-13 17:51:26.800418719 +0100
 @@ -313,6 +313,7 @@
  #endif
  
@@ -806,22 +758,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/opengl/include/EGL/eglext.h a/fra
  
  #if KHRONOS_SUPPORT_INT64 /* EGLuint64KHR requires 64-bit uint support */
  #ifndef EGL_KHR_stream
-diff -Bur '--exclude=.git' a/frameworks/native/opengl/libs/Android.mk a/frameworks/native/opengl/libs/Android.mk
---- a/frameworks/native/opengl/libs/Android.mk	2015-01-07 23:52:19.849876913 +0100
-+++ a/frameworks/native/opengl/libs/Android.mk	2015-01-06 10:41:47.854580445 +0100
-@@ -47,6 +47,9 @@
- ifeq ($(BOARD_ALLOW_EGL_HIBERNATION),true)
-   LOCAL_CFLAGS += -DBOARD_ALLOW_EGL_HIBERNATION
- endif
-+ifeq ($(BOARD_EGL_WORKAROUND_BUG_10194508), true)
-+  LOCAL_CFLAGS += -DWORKAROUND_BUG_10194508=1
-+endif
- ifeq ($(TARGET_BOARD_PLATFORM), omap4)
-   LOCAL_CFLAGS += -DWORKAROUND_BUG_10194508=1
- endif
-diff -Bur '--exclude=.git' a/frameworks/native/opengl/libs/EGL/eglApi.cpp a/frameworks/native/opengl/libs/EGL/eglApi.cpp
+diff -Bur '--exclude=.git' a/frameworks/native/opengl/libs/EGL/eglApi.cpp b/frameworks/native/opengl/libs/EGL/eglApi.cpp
 --- a/frameworks/native/opengl/libs/EGL/eglApi.cpp	2015-01-07 23:52:19.849876913 +0100
-+++ a/frameworks/native/opengl/libs/EGL/eglApi.cpp	2015-01-06 10:41:47.858580445 +0100
++++ b/frameworks/native/opengl/libs/EGL/eglApi.cpp	2015-01-13 17:51:26.800418719 +0100
 @@ -139,11 +139,13 @@
      { "eglGetSyncAttribKHR",
              (__eglMustCastToProperFunctionPointerType)&eglGetSyncAttribKHR },
@@ -849,14 +788,13 @@ diff -Bur '--exclude=.git' a/frameworks/native/opengl/libs/EGL/eglApi.cpp a/fram
      return setErrorQuiet(EGL_BAD_DISPLAY, 0);
  }
 +#endif
-diff -Bur '--exclude=.git' a/frameworks/native/opengl/libs/EGL/egl_entries.in a/frameworks/native/opengl/libs/EGL/egl_entries.in
+diff -Bur '--exclude=.git' a/frameworks/native/opengl/libs/EGL/egl_entries.in b/frameworks/native/opengl/libs/EGL/egl_entries.in
 --- a/frameworks/native/opengl/libs/EGL/egl_entries.in	2015-01-07 23:52:19.849876913 +0100
-+++ a/frameworks/native/opengl/libs/EGL/egl_entries.in	2015-01-06 10:41:47.858580445 +0100
-@@ -87,10 +87,13 @@
++++ b/frameworks/native/opengl/libs/EGL/egl_entries.in	2015-01-13 17:51:26.800418719 +0100
+@@ -87,8 +87,10 @@
  
  /* NVIDIA extensions */
  
-+
 +#ifndef STE_HARDWARE
  EGL_ENTRY(EGLuint64NV, eglGetSystemTimeFrequencyNV, void)
  EGL_ENTRY(EGLuint64NV, eglGetSystemTimeNV, void)
@@ -864,13 +802,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/opengl/libs/EGL/egl_entries.in a/
  
  /* IMG extensions */
  
- EGL_ENTRY(EGLBoolean, eglHibernateProcessIMG, void)
--EGL_ENTRY(EGLBoolean, eglAwakenProcessIMG, void)
-\ No newline at end of file
-+EGL_ENTRY(EGLBoolean, eglAwakenProcessIMG, void)
-diff -Bur '--exclude=.git' a/frameworks/native/services/surfaceflinger/DisplayDevice.cpp a/frameworks/native/services/surfaceflinger/DisplayDevice.cpp
+diff -Bur '--exclude=.git' a/frameworks/native/services/surfaceflinger/DisplayDevice.cpp b/frameworks/native/services/surfaceflinger/DisplayDevice.cpp
 --- a/frameworks/native/services/surfaceflinger/DisplayDevice.cpp	2015-01-07 23:52:19.913876911 +0100
-+++ a/frameworks/native/services/surfaceflinger/DisplayDevice.cpp	2015-01-06 10:41:47.858580445 +0100
++++ b/frameworks/native/services/surfaceflinger/DisplayDevice.cpp	2015-01-13 17:51:26.800418719 +0100
 @@ -26,6 +26,9 @@
  
  #include <ui/DisplayInfo.h>
@@ -912,26 +846,26 @@ diff -Bur '--exclude=.git' a/frameworks/native/services/surfaceflinger/DisplayDe
      result.appendFormat(
          "+ DisplayDevice: %s\n"
 -        "   type=%x, hwcId=%d, layerStack=%u, (%4dx%4d), ANativeWindow=%p, orient=%2d (type=%08x), "
-+        "   type=%x, hwcId=%d, layerStack=%u, (%4dx%4d),"
++        "   type=%x, hwcId=%d, layerStack=%u, (%4dx%4d)," 
 +#ifndef STE_HARDWARE
 +        "ANativeWindow=%p,"
-+#endif
++#endif 
 +        "orient=%2d (type=%08x), "
          "flips=%u, isSecure=%d, secureVis=%d, powerMode=%d, activeConfig=%d, numLayers=%zu\n"
          "   v:[%d,%d,%d,%d], f:[%d,%d,%d,%d], s:[%d,%d,%d,%d],"
          "transform:[[%0.3f,%0.3f,%0.3f][%0.3f,%0.3f,%0.3f][%0.3f,%0.3f,%0.3f]]\n",
          mDisplayName.string(), mType, mHwcDisplayId,
 -        mLayerStack, mDisplayWidth, mDisplayHeight, mNativeWindow.get(),
-+        mLayerStack, mDisplayWidth, mDisplayHeight,
++        mLayerStack, mDisplayWidth, mDisplayHeight, 
 +#ifndef STE_HARDWARE
-+        mNativeWindow.get(),
++	mNativeWindow.get(),
 +#endif
          mOrientation, tr.getType(), getPageFlipCount(),
          mIsSecure, mSecureLayerVisible, mPowerMode, mActiveConfig,
          mVisibleLayersSortedByZ.size(),
-diff -Bur '--exclude=.git' a/frameworks/native/services/surfaceflinger/DisplayDevice.h a/frameworks/native/services/surfaceflinger/DisplayDevice.h
+diff -Bur '--exclude=.git' a/frameworks/native/services/surfaceflinger/DisplayDevice.h b/frameworks/native/services/surfaceflinger/DisplayDevice.h
 --- a/frameworks/native/services/surfaceflinger/DisplayDevice.h	2015-01-07 23:52:19.913876911 +0100
-+++ a/frameworks/native/services/surfaceflinger/DisplayDevice.h	2015-01-06 10:41:47.858580445 +0100
++++ b/frameworks/native/services/surfaceflinger/DisplayDevice.h	2015-01-13 17:51:26.800418719 +0100
 @@ -192,7 +192,9 @@
      wp<IBinder> mDisplayToken;
  
@@ -942,9 +876,9 @@ diff -Bur '--exclude=.git' a/frameworks/native/services/surfaceflinger/DisplayDe
      sp<DisplaySurface> mDisplaySurface;
  
      EGLConfig       mConfig;
-diff -Bur '--exclude=.git' a/frameworks/native/services/surfaceflinger/SurfaceFlinger.cpp a/frameworks/native/services/surfaceflinger/SurfaceFlinger.cpp
+diff -Bur '--exclude=.git' a/frameworks/native/services/surfaceflinger/SurfaceFlinger.cpp b/frameworks/native/services/surfaceflinger/SurfaceFlinger.cpp
 --- a/frameworks/native/services/surfaceflinger/SurfaceFlinger.cpp	2015-01-07 23:52:19.921876911 +0100
-+++ a/frameworks/native/services/surfaceflinger/SurfaceFlinger.cpp	2015-01-06 10:41:47.858580445 +0100
++++ b/frameworks/native/services/surfaceflinger/SurfaceFlinger.cpp	2015-01-13 17:51:26.804418719 +0100
 @@ -3348,6 +3348,7 @@
      uint32_t code;
      Parcel const* data;
@@ -957,7 +891,7 @@ diff -Bur '--exclude=.git' a/frameworks/native/services/surfaceflinger/SurfaceFl
       */
      virtual status_t transact(uint32_t code,
              const Parcel& data, Parcel* reply, uint32_t /* flags */) {
-+        mLock.lock();
++        mLock.lock(); 
          this->code = code;
          this->data = &data;
          this->reply = reply;

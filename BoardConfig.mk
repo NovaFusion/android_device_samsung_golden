@@ -44,9 +44,9 @@ COMMON_GLOBAL_CFLAGS += -DSTE_HARDWARE -DSTE_SAMSUNG_HARDWARE
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x02000000
-TARGET_PREBUILT_KERNEL := device/samsung/golden/ramdisk/zImage
-#TARGET_KERNEL_SOURCE := kernel/samsung/golden
-#TARGET_KERNEL_CONFIG := golden_android_defconfig
+#TARGET_PREBUILT_KERNEL := device/samsung/golden/ramdisk/zImage
+TARGET_KERNEL_SOURCE := kernel/samsung/golden
+TARGET_KERNEL_CONFIG := golden_android_defconfig
 TARGET_NO_INITLOGO := true
 
 # Graphics
