@@ -12,6 +12,7 @@ ro.zygote.disable_gl_preload=1
 ro.bq.gpu_to_cpu_unsupported=1
 debug.hwui.render_dirty_regions=false
 debug.sf.hw=1
+debug.composition.type=gpu
 # USB
 persist.sys.usb.config=mtp,adb
 persist.service.adb.enable=1
@@ -26,7 +27,4 @@ ste.cam.front.orientation=270
 ste.cam.back.orientation=90
 ste.cam.ext.cfg.path.secondary=/system/usr/share/camera/config_file/aptina_mt9v113.dat
 ste.omx.ctx=0
-ro.config.sync=yes
-ro.config.ntp.server_poll=86400000
-ro.config.ntp.clock_sync=1800000
-ro.config.ntp.sync_mode=3
+# Camera green screen fix (testing)

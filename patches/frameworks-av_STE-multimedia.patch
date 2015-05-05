@@ -1,0 +1,601 @@
+diff -Bur '--exclude=.git' a/frameworks/av/include/media/stagefright/ColorConverter.h b/frameworks/av/include/media/stagefright/ColorConverter.h
+--- a/frameworks/av/include/media/stagefright/ColorConverter.h	2015-01-07 23:49:10.597883565 +0100
++++ b/frameworks/av/include/media/stagefright/ColorConverter.h	2015-01-13 17:47:58.548426038 +0100
+@@ -72,6 +72,11 @@
+ 
+     status_t convertQCOMYUV420SemiPlanar(
+             const BitmapParams &src, const BitmapParams &dst);
++			
++#ifdef STE_HARDWARE
++    status_t convertSTEYUV420PackedSemiPlanarMB(
++            const BitmapParams &src, const BitmapParams &dst);
++#endif
+ 
+     status_t convertYUV420SemiPlanar(
+             const BitmapParams &src, const BitmapParams &dst);
+diff -Bur '--exclude=.git' a/frameworks/av/include/media/stagefright/MediaDefs.h b/frameworks/av/include/media/stagefright/MediaDefs.h
+--- a/frameworks/av/include/media/stagefright/MediaDefs.h	2015-01-07 23:49:10.597883565 +0100
++++ b/frameworks/av/include/media/stagefright/MediaDefs.h	2015-01-13 17:47:58.548426038 +0100
+@@ -29,8 +29,14 @@
+ extern const char *MEDIA_MIMETYPE_VIDEO_MPEG4;
+ extern const char *MEDIA_MIMETYPE_VIDEO_MPEG4_DP;
+ extern const char *MEDIA_MIMETYPE_VIDEO_H263;
++#ifdef STE_HARDWARE
++extern const char *MEDIA_MIMETYPE_VIDEO_H263_SW;
++#endif
+ extern const char *MEDIA_MIMETYPE_VIDEO_MPEG2;
+ extern const char *MEDIA_MIMETYPE_VIDEO_RAW;
++#ifdef STE_HARDWARE
++extern const char *MEDIA_MIMETYPE_VIDEO_VC1;
++#endif
+ 
+ extern const char *MEDIA_MIMETYPE_AUDIO_AMR_NB;
+ extern const char *MEDIA_MIMETYPE_AUDIO_AMR_WB;
+diff -Bur '--exclude=.git' a/frameworks/av/include/media/stagefright/OMXCodec.h b/frameworks/av/include/media/stagefright/OMXCodec.h
+--- a/frameworks/av/include/media/stagefright/OMXCodec.h	2015-01-07 23:49:10.601883565 +0100
++++ b/frameworks/av/include/media/stagefright/OMXCodec.h	2015-01-13 17:47:58.548426038 +0100
+@@ -95,6 +95,10 @@
+     // from MediaBufferObserver
+     virtual void signalBufferReturned(MediaBuffer *buffer);
+ 
++#ifdef STE_HARDWARE
++    static uint32_t OmxToHALFormat(OMX_COLOR_FORMATTYPE omxValue);
++#endif
++
+     enum Quirks {
+         kNeedsFlushBeforeDisable              = 1,
+         kWantsNALFragments                    = 2,
+@@ -109,6 +113,9 @@
+         kSupportsMultipleFramesPerInputBuffer = 1024,
+         kRequiresLargerEncoderOutputBuffer    = 2048,
+         kOutputBuffersAreUnreadable           = 4096,
++#ifdef STE_HARDWARE
++        kRequiresStoreMetaDataBeforeIdle      = 16384,
++#endif
+         kRequiresGlobalFlush                  = 0x20000000, // 2^29
+         kRequiresWMAProComponent              = 0x40000000, //2^30
+     };
+diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/ACodec.cpp b/frameworks/av/media/libstagefright/ACodec.cpp
+--- a/frameworks/av/media/libstagefright/ACodec.cpp	2015-01-07 23:49:10.657883563 +0100
++++ b/frameworks/av/media/libstagefright/ACodec.cpp	2015-01-13 17:48:55.232424046 +0100
+@@ -552,11 +552,15 @@
+ 
+     status_t err;
+     if (mNativeWindow != NULL && portIndex == kPortIndexOutput) {
++#ifdef STE_HARDWARE
++	err = allocateOutputBuffersFromNativeWindow();
++#else
+         if (mStoreMetaDataInOutputBuffers) {
+             err = allocateOutputMetaDataBuffers();
+         } else {
+             err = allocateOutputBuffersFromNativeWindow();
+         }
++#endif
+     } else {
+         OMX_PARAM_PORTDEFINITIONTYPE def;
+         InitOMXParams(&def);
+@@ -666,7 +670,11 @@
+             mNativeWindow.get(),
+             def.format.video.nFrameWidth,
+             def.format.video.nFrameHeight,
++#ifdef STE_HARDWARE
++            OMXCodec::OmxToHALFormat(def.format.video.eColorFormat));
++#else
+             def.format.video.eColorFormat);
++#endif          
+ #endif
+ 
+     if (err != 0) {
+@@ -1260,6 +1268,15 @@
+     sp<AMessage> outputFormat = new AMessage();
+ 
+     mIsEncoder = encoder;
++   /* Meticulus:
++    * Software codecs don't require configuration? Not sure
++    * but skipping configuration for them seems to work.
++    */
++    if(strncmp("OMX.google.h264", mComponentName.c_str(), 15) == 0
++       || strncmp("OMX.ffmpeg.h264", mComponentName.c_str(), 15) == 0){
++	ALOGI("Meticulus: Soft codec %s detected, skipping configureCodec\n", mComponentName.c_str());
++       return OK;
++    }
+ 
+     status_t err = setComponentRole(encoder /* isEncoder */, mime);
+ 
+@@ -4486,7 +4503,7 @@
+                 mCodec->mSkipCutBuffer->submit(info->mData);
+             }
+             info->mData->meta()->setInt64("timeUs", timeUs);
+-            info->mData->meta()->setObject("graphic-buffer", info->mGraphicBuffer);
++            //info->mData->meta()->setObject("graphic-buffer", (android::RefBase*)&info->mGraphicBuffer);
+ 
+             sp<AMessage> notify = mCodec->mNotify->dup();
+             notify->setInt32("what", CodecBase::kWhatDrainThisBuffer);
+diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/CameraSource.cpp b/frameworks/av/media/libstagefright/CameraSource.cpp
+--- a/frameworks/av/media/libstagefright/CameraSource.cpp	2015-01-07 23:49:10.661883562 +0100
++++ b/frameworks/av/media/libstagefright/CameraSource.cpp	2015-01-13 17:47:58.552426038 +0100
+@@ -128,6 +128,12 @@
+        return OMX_TI_COLOR_FormatYUV420PackedSemiPlanar;
+     }
+ 
++#ifdef STE_HARDWARE
++    if (!strcmp(colorFormat, CameraParameters::PIXEL_FORMAT_YUV420MB)) {
++       return OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB;
++    }
++#endif
++
+     if (!strcmp(colorFormat, CameraParameters::PIXEL_FORMAT_ANDROID_OPAQUE)) {
+         return OMX_COLOR_FormatAndroidOpaque;
+     }
+@@ -576,13 +582,22 @@
+ 
+     // XXX: query camera for the stride and slice height
+     // when the capability becomes available.
++#ifdef STE_HARDWARE
++    int stride = newCameraParams.getInt(CameraParameters::KEY_RECORD_STRIDE);
++    int sliceHeight = newCameraParams.getInt(CameraParameters::KEY_RECORD_SLICE_HEIGHT);
++#endif
+     mMeta = new MetaData;
+     mMeta->setCString(kKeyMIMEType,  MEDIA_MIMETYPE_VIDEO_RAW);
+     mMeta->setInt32(kKeyColorFormat, mColorFormat);
+     mMeta->setInt32(kKeyWidth,       mVideoSize.width);
+     mMeta->setInt32(kKeyHeight,      mVideoSize.height);
++#ifdef STE_HARDWARE
++    mMeta->setInt32(kKeyStride,      stride != -1 ? stride : mVideoSize.width);
++    mMeta->setInt32(kKeySliceHeight, sliceHeight != -1 ? sliceHeight : mVideoSize.height);
++#else
+     mMeta->setInt32(kKeyStride,      mVideoSize.width);
+     mMeta->setInt32(kKeySliceHeight, mVideoSize.height);
++#endif
+     mMeta->setInt32(kKeyFrameRate,   mVideoFrameRate);
+ 
+     ExtendedUtils::HFR::setHFRIfEnabled(params, mMeta);
+diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp b/frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp
+--- a/frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp	2015-01-07 23:49:10.829883557 +0100
++++ b/frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp	2015-01-13 17:47:58.552426038 +0100
+@@ -47,6 +47,9 @@
+         case OMX_QCOM_COLOR_FormatYVU420SemiPlanar:
+         case OMX_COLOR_FormatYUV420SemiPlanar:
+         case OMX_TI_COLOR_FormatYUV420PackedSemiPlanar:
++#ifdef STE_HARDWARE
++        case OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB:
++#endif
+             return true;
+ 
+         default:
+@@ -122,6 +125,12 @@
+             err = convertTIYUV420PackedSemiPlanar(src, dst);
+             break;
+ 
++#ifdef STE_HARDWARE
++        case OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB:
++            err = convertSTEYUV420PackedSemiPlanarMB(src, dst);
++            break;
++#endif
++
+         default:
+         {
+             CHECK(!"Should not be here. Unknown color conversion.");
+@@ -506,6 +515,142 @@
+     return OK;
+ }
+ 
++#ifdef STE_HARDWARE
++status_t ColorConverter::convertSTEYUV420PackedSemiPlanarMB(
++        const BitmapParams &src, const BitmapParams &dst) {
++
++    if (!((dst.mWidth & 1) == 0
++            && src.mCropLeft == 0
++            && src.mCropTop == 0
++            && src.cropWidth() == dst.cropWidth()
++            && src.cropHeight() == dst.cropHeight())) {
++        return ERROR_UNSUPPORTED;
++    }
++
++    OMX_U32 mx = src.mWidth / 16;
++    OMX_U32 my = src.mHeight / 16;
++    OMX_U32 lx, ly;
++    OMX_U32 *pChroma, *pLuma = (OMX_U32 *)src.mBits;
++
++    pChroma = (OMX_U32 *)src.mBits + mx * my * 64;
++    for (ly = 0; ly < my; ly++) {
++        for (lx = 0; lx < mx; lx++) {
++            OMX_U32 col, row, lumaWord, chromaWord1 = 0, rgbWord, i;
++            OMX_U8 y[4], cb[4], cr[4], r[4], g[4], b[4];
++            OMX_U32 *dstBuf, *locBuf;
++            OMX_U32 *pBurstLuma = 0, *pBurstChroma = 0;
++            OMX_U32 *pWordLuma = 0, *pWordChroma = 0;
++            OMX_U8 nbOfBlock;
++
++            dstBuf = ((OMX_U32 *)dst.mBits) + (ly * 16) * dst.mWidth / 2;
++            dstBuf += (lx * 16) / 2;
++
++            pBurstLuma = pLuma;
++            pBurstChroma = pChroma;
++
++            for (col = 0; col < 2; col++) {
++                // conversion of a macroblock
++                for (nbOfBlock = 0; nbOfBlock < 2; nbOfBlock++) {
++                    locBuf = dstBuf + 4 * col + 2 * nbOfBlock;
++                    OMX_U32 dstRowOrigo = ly * 16 * dst.mWidth;
++
++                    switch (nbOfBlock) {
++                    case 0:
++                        pWordLuma = pBurstLuma;
++                        pWordChroma = pBurstChroma;
++                        break;
++                    case 1:
++                        pWordLuma = pBurstLuma + 1;
++                        pWordChroma = pBurstChroma + 1;
++                        break;
++                    }
++                    for (row = 0; row < 16; row++) {
++                        // Check for cropping on the y axis
++                        if (ly * 16 + row >= dst.mHeight) {
++                            break;
++                        }
++
++                        lumaWord = *pWordLuma;
++                        pWordLuma += 2;
++                        if (row % 2 == 0) {
++                            chromaWord1 = *pWordChroma;
++                            pWordChroma += 2;
++                        }
++
++                        y[3] = ((lumaWord >> 24) & 0xff);
++                        y[2] = ((lumaWord >> 16) & 0xff);
++                        y[1] = ((lumaWord >>  8) & 0xff);
++                        y[0] = ((lumaWord >>  0) & 0xff);
++
++                        cb[0] = cb[1] = ((chromaWord1 >>  0) & 0xff);
++                        cb[2] = cb[3] = ((chromaWord1 >> 16) & 0xff);
++                        cr[0] = cr[1] = ((chromaWord1 >>  8) & 0xff);
++                        cr[2] = cr[3] = ((chromaWord1 >> 24) & 0xff);
++
++                        for (i = 0; i < 4; i++) {
++                            int32_t rW,gW,bW;
++
++                            rW = 298 * y[i] + 408 * cr[i] - 57059;
++                            gW = 298 * y[i] - 100 * cb[i] - 208 * cr[i] + 34713;
++                            bW = 298 * y[i] + 516 * cb[i] - 70887;
++
++                            if (rW < 0) {
++                                r[i] = 0;
++                            } else if (rW >= 65536) {
++                                r[i] = 255;
++                            } else {
++                                r[i] = (rW >> 8);
++                            }
++                            if (gW < 0) {
++                                g[i] = 0;
++                            } else if (gW >= 65536) {
++                                g[i] = 255;
++                            } else {
++                                g[i] = (gW >> 8);
++                            }
++                            if (bW < 0) {
++                                b[i] = 0;
++                            } else if (bW >= 65536) {
++                                b[i] = 255;
++                            } else {
++                                b[i] = (bW >> 8);
++                            }
++                            r[i] >>= 3;
++                            g[i] >>= 2;
++                            b[i] >>= 3;
++                        }
++                        for (i = 0; i < 4; i += 2) {
++                            // Check for cropping on the x axis
++                            OMX_U32 rowPos = (locBuf - (OMX_U32 *)dst.mBits) * 2 - dstRowOrigo;
++                            if (rowPos >= dst.mWidth) {
++                                locBuf++;
++                                continue;
++                            }
++
++                            rgbWord = (r[i + 1] << 27) +
++                                (g[i + 1] << 21) +
++                                (b[i + 1] << 16) +
++                                (r[i] << 11) +
++                                (g[i] << 5) +
++                                (b[i] << 0);
++                            *locBuf++ = rgbWord;
++                        }
++                        locBuf += dst.mWidth / 2 - 2;
++                        dstRowOrigo += dst.mWidth;
++                    } //end of for 16 loop
++                }  //end of 2 block loop
++                pBurstLuma += 32;
++                pBurstChroma += 16;
++            } // end of 2 col loop
++            pLuma   += 64;
++            pChroma += 32;
++        }
++    }
++
++    return OK;
++}
++#endif
++
+ uint8_t *ColorConverter::initClip() {
+     static const signed kClipMin = -278;
+     static const signed kClipMax = 535;
+diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/MediaDefs.cpp b/frameworks/av/media/libstagefright/MediaDefs.cpp
+--- a/frameworks/av/media/libstagefright/MediaDefs.cpp	2015-01-07 23:49:10.669883562 +0100
++++ b/frameworks/av/media/libstagefright/MediaDefs.cpp	2015-01-13 17:47:58.552426038 +0100
+@@ -27,8 +27,14 @@
+ const char *MEDIA_MIMETYPE_VIDEO_MPEG4 = "video/mp4v-es";
+ const char *MEDIA_MIMETYPE_VIDEO_MPEG4_DP = "video/mp4v-esdp";
+ const char *MEDIA_MIMETYPE_VIDEO_H263 = "video/3gpp";
++#ifdef STE_HARDWARE
++const char *MEDIA_MIMETYPE_VIDEO_H263_SW = "video/3gpp-sw";
++#endif
+ const char *MEDIA_MIMETYPE_VIDEO_MPEG2 = "video/mpeg2";
+ const char *MEDIA_MIMETYPE_VIDEO_RAW = "video/raw";
++//#ifdef STE_HARDWARE
++//const char *MEDIA_MIMETYPE_VIDEO_VC1 = "video/vc1";
++//#endif
+ 
+ const char *MEDIA_MIMETYPE_AUDIO_AMR_NB = "audio/3gpp";
+ const char *MEDIA_MIMETYPE_AUDIO_AMR_WB = "audio/amr-wb";
+diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/omx/OMXNodeInstance.cpp b/frameworks/av/media/libstagefright/omx/OMXNodeInstance.cpp
+--- a/frameworks/av/media/libstagefright/omx/OMXNodeInstance.cpp	2015-01-07 23:49:10.845883556 +0100
++++ b/frameworks/av/media/libstagefright/omx/OMXNodeInstance.cpp	2015-01-13 17:49:10.476423510 +0100
+@@ -630,13 +630,20 @@
+ 
+     // See if the newer version of the extension is present.
+     OMX_INDEXTYPE index;
++#ifndef STE_HARDWARE
++    /* Meticulus:
++     * We don't support useAndroidNativeBuffer2 and although it works fine
++     * to have this in, we are always going to fall back
++     * to useAndroidNativeBuffer everytime. Removing this might speed things
++     * up a little bit.
++     */
+     if (OMX_GetExtensionIndex(
+             mHandle,
+             const_cast<OMX_STRING>("OMX.google.android.index.useAndroidNativeBuffer2"),
+             &index) == OMX_ErrorNone) {
+         return useGraphicBuffer2_l(portIndex, graphicBuffer, buffer);
+     }
+-
++#endif
+     OMX_STRING name = const_cast<OMX_STRING>(
+         "OMX.google.android.index.useAndroidNativeBuffer");
+     OMX_ERRORTYPE err = OMX_GetExtensionIndex(mHandle, name, &index);
+diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/OMXClient.cpp b/frameworks/av/media/libstagefright/OMXClient.cpp
+--- a/frameworks/av/media/libstagefright/OMXClient.cpp	2015-01-07 23:49:10.669883562 +0100
++++ b/frameworks/av/media/libstagefright/OMXClient.cpp	2015-01-13 17:48:12.884425534 +0100
+@@ -30,6 +30,10 @@
+ #include <utils/KeyedVector.h>
+ 
+ #include "include/OMX.h"
++#ifdef STE_HARDWARE
++#include <OMX_Video.h>
++#include <OMX_Index.h>
++#endif
+ 
+ namespace android {
+ 
+@@ -257,7 +261,23 @@
+ status_t MuxOMX::getParameter(
+         node_id node, OMX_INDEXTYPE index,
+         void *params, size_t size) {
+-    return getOMX(node)->getParameter(node, index, params, size);
++#ifdef STE_HARDWARE
++	/* Meticulus:
++	 * If we call into our STE omx blobs with an unsupported profile index
++	 * The blob freaks out and dies causing errors later. If we stop the call
++	 * and just return an error here, VFM doesn't freak out and the caller
++	 * can try a working profile. i.e. YouTube v5.10.1.5 (9/19/2014) and up.
++	 */
++	if(index == OMX_IndexParamVideoProfileLevelQuerySupported){
++		OMX_VIDEO_PARAM_PROFILELEVELTYPE *pt = (OMX_VIDEO_PARAM_PROFILELEVELTYPE *)params;
++		ALOGI("Meticulus: eProfile=%lu eLevel=%lu nProfileIndex=%lu\n",pt->eProfile, pt->eLevel, pt->nProfileIndex);
++		if(pt->nProfileIndex == 0){
++			return -1;
++		}
++		
++	}
++#endif
++    	return getOMX(node)->getParameter(node, index, params, size);
+ }
+ 
+ status_t MuxOMX::setParameter(
+diff -Bur '--exclude=.git' a/frameworks/av/media/libstagefright/OMXCodec.cpp b/frameworks/av/media/libstagefright/OMXCodec.cpp
+--- a/frameworks/av/media/libstagefright/OMXCodec.cpp	2015-01-07 23:49:10.669883562 +0100
++++ b/frameworks/av/media/libstagefright/OMXCodec.cpp	2015-01-13 17:47:58.552426038 +0100
+@@ -261,6 +261,20 @@
+     return 0;
+ }
+ 
++#ifdef STE_HARDWARE
++uint32_t OMXCodec::OmxToHALFormat(OMX_COLOR_FORMATTYPE omxValue) {
++    switch (omxValue) {
++        case OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB:
++            return HAL_PIXEL_FORMAT_YCBCR42XMBN;
++        case OMX_COLOR_FormatYUV420Planar:
++            return HAL_PIXEL_FORMAT_YCbCr_420_P;
++        default:
++            ALOGI("Unknown OMX pixel format (0x%X), passing it on unchanged", omxValue);
++            return omxValue;
++    }
++}
++#endif
++
+ // static
+ void OMXCodec::findMatchingCodecs(
+         const char *mime,
+@@ -361,6 +375,11 @@
+         quirks |= kRequiresGlobalFlush;
+     }
+ 
++#ifdef STE_HARDWARE
++    if (info->hasQuirk("requires-store-metadata-before-idle")) {
++      quirks |= kRequiresStoreMetaDataBeforeIdle;
++    }
++#endif
+ #ifdef ENABLE_AV_ENHANCEMENTS
+     quirks |= ExtendedCodec::getComponentQuirks(info);
+ #endif
+@@ -1021,6 +1040,10 @@
+         case OMX_COLOR_FormatYUV420Planar:
+         case OMX_COLOR_FormatYUV420SemiPlanar:
+         case OMX_TI_COLOR_FormatYUV420PackedSemiPlanar:
++#ifdef STE_HARDWARE
++        case OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB:
++#endif
++
+         /*
+         * FIXME: For the Opaque color format, the frame size does not
+         * need to be (w*h*3)/2. It just needs to
+@@ -1808,6 +1831,10 @@
+             "video_decoder.mpeg4", NULL },
+         { MEDIA_MIMETYPE_VIDEO_H263,
+             "video_decoder.h263", "video_encoder.h263" },
++#ifdef STE_HARDWARE
++        { MEDIA_MIMETYPE_VIDEO_VC1,
++            "video_decoder.vc1", "video_encoder.vc1" },
++#endif
+         { MEDIA_MIMETYPE_VIDEO_VP8,
+             "video_decoder.vp8", "video_encoder.vp8" },
+         { MEDIA_MIMETYPE_VIDEO_VP9,
+@@ -1898,6 +1925,16 @@
+     CHECK_EQ((int)mState, (int)LOADED);
+ 
+     status_t err;
++#ifdef STE_HARDWARE
++    if ((mQuirks & kRequiresStoreMetaDataBeforeIdle)
++        && (mFlags & kStoreMetaDataInVideoBuffers)) {
++        err = mOMX->storeMetaDataInBuffers(mNode, kPortIndexInput, OMX_TRUE);
++        if (err != OK) {
++            ALOGE("Storing meta data in video buffers is not supported");
++            return err;
++        }
++    }
++#endif
+     if (!(mQuirks & kRequiresLoadedToIdleAfterAllocation)) {
+         err = mOMX->sendCommand(mNode, OMX_CommandStateSet, OMX_StateIdle);
+         CHECK_EQ(err, (status_t)OK);
+@@ -1960,7 +1997,12 @@
+     }
+ 
+     status_t err = OK;
++#ifdef STE_HARDWARE
++    if (!(mQuirks & kRequiresStoreMetaDataBeforeIdle)
++            && (mFlags & kStoreMetaDataInVideoBuffers)
++#else
+     if ((mFlags & kStoreMetaDataInVideoBuffers)
++#endif
+             && portIndex == kPortIndexInput) {
+         err = mOMX->storeMetaDataInBuffers(mNode, kPortIndexInput, OMX_TRUE);
+         if (err != OK) {
+@@ -2161,7 +2203,11 @@
+             mNativeWindow.get(),
+             def.format.video.nFrameWidth,
+             def.format.video.nFrameHeight,
++#ifdef STE_HARDWARE
++            OmxToHALFormat(def.format.video.eColorFormat));
++#else
+             def.format.video.eColorFormat);
++#endif
+ #else
+     OMX_COLOR_FORMATTYPE eNativeColorFormat = def.format.video.eColorFormat;
+     setNativeWindowColorFormat(eNativeColorFormat);
+@@ -2253,7 +2299,12 @@
+     //    plus an extra buffer to account for incorrect minUndequeuedBufs
+     CODEC_LOGI("OMX-buffers: min=%u actual=%u undeq=%d+1",
+             def.nBufferCountMin, def.nBufferCountActual, minUndequeuedBufs);
+-
++#ifdef BOARD_CANT_REALLOCATE_OMX_BUFFERS
++    // Some devices don't like to set OMX_IndexParamPortDefinition at this
++    // point (even with an unmodified def), so skip it if possible.
++    // This check was present in KitKat.
++    if (def.nBufferCountActual < def.nBufferCountMin + minUndequeuedBufs) {
++#endif
+     for (OMX_U32 extraBuffers = 2 + 1; /* condition inside loop */; extraBuffers--) {
+         OMX_U32 newBufferCount =
+             def.nBufferCountMin + minUndequeuedBufs + extraBuffers;
+@@ -2275,6 +2326,9 @@
+     }
+     CODEC_LOGI("OMX-buffers: min=%u actual=%u undeq=%d+1",
+             def.nBufferCountMin, def.nBufferCountActual, minUndequeuedBufs);
++#ifdef BOARD_CANT_REALLOCATE_OMX_BUFFERS
++    }
++#endif
+ 
+     err = native_window_set_buffer_count(
+             mNativeWindow.get(), def.nBufferCountActual);
+diff -Bur '--exclude=.git' a/frameworks/av/services/audioflinger/AudioFlinger.cpp b/frameworks/av/services/audioflinger/AudioFlinger.cpp
+--- a/frameworks/av/services/audioflinger/AudioFlinger.cpp	2015-01-07 23:49:10.865883555 +0100
++++ b/frameworks/av/services/audioflinger/AudioFlinger.cpp	2015-01-13 17:56:56.740407123 +0100
+@@ -153,11 +153,14 @@
+     if (rc) {
+         goto out;
+     }
++#ifndef MR0_AUDIO_BLOB
+     if ((*dev)->common.version < AUDIO_DEVICE_API_VERSION_MIN) {
+         ALOGE("%s wrong audio hw device version %04x", __func__, (*dev)->common.version);
+         rc = BAD_VALUE;
+         goto out;
+     }
++#endif
++
+     return 0;
+ 
+ out:
+@@ -1781,6 +1784,7 @@
+     {  // scope for auto-lock pattern
+         AutoMutex lock(mHardwareLock);
+ 
++#ifndef MR0_AUDIO_BLOB
+         if (0 == mAudioHwDevs.size()) {
+             mHardwareStatus = AUDIO_HW_GET_MASTER_VOLUME;
+             if (NULL != dev->get_master_volume) {
+@@ -1798,6 +1802,7 @@
+                 }
+             }
+         }
++#endif
+ 
+         mHardwareStatus = AUDIO_HW_SET_MASTER_VOLUME;
+         if ((NULL != dev->set_master_volume) &&
+@@ -1806,12 +1811,14 @@
+                     AudioHwDevice::AHWD_CAN_SET_MASTER_VOLUME);
+         }
+ 
++#ifndef MR0_AUDIO_BLOB
+         mHardwareStatus = AUDIO_HW_SET_MASTER_MUTE;
+         if ((NULL != dev->set_master_mute) &&
+             (OK == dev->set_master_mute(dev, mMasterMute))) {
+             flags = static_cast<AudioHwDevice::Flags>(flags |
+                     AudioHwDevice::AHWD_CAN_SET_MASTER_MUTE);
+         }
++#endif
+ 
+         mHardwareStatus = AUDIO_HW_IDLE;
+     }
+@@ -2020,7 +2027,12 @@
+         thread->audioConfigChanged(AudioSystem::OUTPUT_OPENED);
+ 
+         // the first primary output opened designates the primary hw device
++#ifdef STE_HARDWARE
++        if ( mPrimaryHardwareDev == NULL ) {
++#else
+         if ((mPrimaryHardwareDev == NULL) && (flags & AUDIO_OUTPUT_FLAG_PRIMARY)) {
++#endif
++
+             ALOGI("Using module %d has the primary audio interface", module);
+             mPrimaryHardwareDev = thread->getOutput()->audioHwDev;
+ 
+diff -Bur '--exclude=.git' a/frameworks/av/services/audiopolicy/AudioPolicyService.cpp b/frameworks/av/services/audiopolicy/AudioPolicyService.cpp
+--- a/frameworks/av/services/audiopolicy/AudioPolicyService.cpp	2015-01-07 23:49:10.885883555 +0100
++++ b/frameworks/av/services/audiopolicy/AudioPolicyService.cpp	2015-01-13 17:49:24.612423014 +0100
+@@ -939,6 +939,8 @@
+                                        const char *keyValuePairs,
+                                        int delayMs)
+ {
++    ALOGI("Meticulus: params=%s",keyValuePairs);
++    if(strcmp("voip=on",keyValuePairs) == 0) return;
+     mAudioCommandThread->parametersCommand(ioHandle, keyValuePairs,
+                                            delayMs);
+ }

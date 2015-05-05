@@ -1,0 +1,61 @@
+diff --git a/src/com/android/phone/PhoneUtils.java b/src/com/android/phone/PhoneUtils.java
+index 7190d86..ea34090 100644
+--- a/packages/services/Telephony/src/com/android/phone/PhoneUtils.java
++++ b/packages/services/Telephony/src/com/android/phone/PhoneUtils.java
+@@ -1859,6 +1859,39 @@ public class PhoneUtils {
+         }
+     }
+ 
++    /**
++     * Reset the audio stream volume to fix the low in-call volume bug.
++     *
++     * Due to a bug in the OMX system, the audio stream volume is set to 0 after it was set to it's default volume.
++     * Calling PhoneUtils.resetAudioStreamVolume() triggers the system to reset the volume.
++     *
++     * This should be called on every place where is switched between audio modes.
++     *
++     * REMARK: I think it only appears on the voice call stream, but to be sure I also do it on the bluetooth stream.
++     */
++    static void resetAudioStreamVolume() {
++        PhoneGlobals app = PhoneGlobals.getInstance();
++        BluetoothManager btManager = app.getBluetoothManager();
++        AudioManager audioManager = (AudioManager) app.getSystemService(Context.AUDIO_SERVICE);
++        // determine actual streamType
++        int streamType = AudioManager.STREAM_VOICE_CALL;
++        if (btManager.isBluetoothHeadsetAudioOn()) {
++            streamType = AudioManager.STREAM_BLUETOOTH_SCO;
++        }
++        // determine volume and 1 level lower volume (lowest level can be 0)
++        int volume = audioManager.getStreamVolume(streamType);
++        int lowerVolume = volume - 1;
++        if (lowerVolume < 0) {
++            lowerVolume = 0;
++        }
++        log("resetAudioStreamVolume (streamType=" + streamType + ", streamVolume=" + volume + ")...");
++        // It's important to change it to another volume before restoring the original volume,
++        // otherwise the volume change will NOT be triggered!!
++        audioManager.setStreamVolume(streamType, lowerVolume, 0);
++        audioManager.setStreamVolume(streamType, volume, 0);
++    }
++
++
+     static boolean isInEmergencyCall(CallManager cm) {
+         for (Connection cn : cm.getActiveFgCall().getConnections()) {
+             if (PhoneNumberUtils.isLocalEmergencyNumber(PhoneGlobals.getInstance(),
+@@ -1878,12 +1911,16 @@ public class PhoneUtils {
+     }
+ 
+     /* package */ static void setAudioMode() {
++
++	resetAudioStreamVolume();
+     }
+ 
+     /**
+      * Sets the audio mode per current phone state.
+      */
+     /* package */ static void setAudioMode(CallManager cm) {
++
++	resetAudioStreamVolume();
+     }
+ 
+     /**

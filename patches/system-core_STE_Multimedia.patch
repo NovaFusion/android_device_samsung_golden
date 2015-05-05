@@ -1,0 +1,166 @@
+diff -Bur '--exclude=.git' a/system/core/include/system/audio.h b/system/core/include/system/audio.h
+--- a/system/core/include/system/audio.h	2015-01-08 12:13:15.188314529 +0100
++++ b/system/core/include/system/audio.h	2015-01-06 10:46:42.486570090 +0100
+@@ -634,7 +634,11 @@
+ enum {
+     AUDIO_DEVICE_NONE                          = 0x0,
+     /* reserved bits */
++#ifdef MR0_AUDIO_BLOB
++    AUDIO_DEVICE_BIT_IN                        = 0x10000,
++#else
+     AUDIO_DEVICE_BIT_IN                        = 0x80000000,
++#endif
+     AUDIO_DEVICE_BIT_DEFAULT                   = 0x40000000,
+     /* output devices */
+     AUDIO_DEVICE_OUT_EARPIECE                  = 0x1,
+@@ -714,6 +718,35 @@
+                                  AUDIO_DEVICE_OUT_USB_DEVICE),
+ 
+     /* input devices */
++#ifdef MR0_AUDIO_BLOB
++    AUDIO_DEVICE_IN_COMMUNICATION         = AUDIO_DEVICE_BIT_IN * 0x1,
++    AUDIO_DEVICE_IN_AMBIENT               = AUDIO_DEVICE_BIT_IN * 0x2,
++    AUDIO_DEVICE_IN_BUILTIN_MIC           = AUDIO_DEVICE_BIT_IN * 0x4,
++    AUDIO_DEVICE_IN_BLUETOOTH_SCO_HEADSET = AUDIO_DEVICE_BIT_IN * 0x8,
++    AUDIO_DEVICE_IN_WIRED_HEADSET         = AUDIO_DEVICE_BIT_IN * 0x10,
++    AUDIO_DEVICE_IN_AUX_DIGITAL           = AUDIO_DEVICE_BIT_IN * 0x20,
++    AUDIO_DEVICE_IN_HDMI                  = AUDIO_DEVICE_IN_AUX_DIGITAL,
++    /* Telephony voice RX path */
++    AUDIO_DEVICE_IN_VOICE_CALL            = AUDIO_DEVICE_BIT_IN * 0x40,
++    AUDIO_DEVICE_IN_TELEPHONY_RX          = AUDIO_DEVICE_IN_VOICE_CALL,
++    AUDIO_DEVICE_IN_BACK_MIC              = AUDIO_DEVICE_BIT_IN * 0x80,
++    AUDIO_DEVICE_IN_REMOTE_SUBMIX         = AUDIO_DEVICE_BIT_IN * 0x100,
++    AUDIO_DEVICE_IN_ANLG_DOCK_HEADSET     = AUDIO_DEVICE_BIT_IN * 0x200,
++    AUDIO_DEVICE_IN_DGTL_DOCK_HEADSET     = AUDIO_DEVICE_BIT_IN * 0x400,
++    AUDIO_DEVICE_IN_USB_ACCESSORY         = AUDIO_DEVICE_BIT_IN * 0x800,
++    AUDIO_DEVICE_IN_USB_DEVICE            = AUDIO_DEVICE_BIT_IN * 0x1000,
++    /* FM tuner input */
++    AUDIO_DEVICE_IN_FM_TUNER              = AUDIO_DEVICE_BIT_IN * 0x2000,
++    /* TV tuner input */
++    AUDIO_DEVICE_IN_TV_TUNER              = AUDIO_DEVICE_BIT_IN * 0x4000,
++    /* Analog jack with line impedance detected */
++    AUDIO_DEVICE_IN_LINE                  = AUDIO_DEVICE_BIT_IN | 0x8000,
++    /* S/PDIF in */
++    AUDIO_DEVICE_IN_SPDIF                 = AUDIO_DEVICE_BIT_IN | 0x10000,
++    AUDIO_DEVICE_IN_BLUETOOTH_A2DP        = AUDIO_DEVICE_BIT_IN | 0x20000,
++    AUDIO_DEVICE_IN_LOOPBACK              = AUDIO_DEVICE_BIT_IN | 0x40000,
++    AUDIO_DEVICE_IN_DEFAULT               = AUDIO_DEVICE_IN_BUILTIN_MIC,
++#else
+     AUDIO_DEVICE_IN_COMMUNICATION         = AUDIO_DEVICE_BIT_IN | 0x1,
+     AUDIO_DEVICE_IN_AMBIENT               = AUDIO_DEVICE_BIT_IN | 0x2,
+     AUDIO_DEVICE_IN_BUILTIN_MIC           = AUDIO_DEVICE_BIT_IN | 0x4,
+@@ -746,6 +779,7 @@
+     AUDIO_DEVICE_IN_FM_RX_A2DP            = AUDIO_DEVICE_BIT_IN | 0x400000,
+ #endif
+     AUDIO_DEVICE_IN_DEFAULT               = AUDIO_DEVICE_BIT_IN | AUDIO_DEVICE_BIT_DEFAULT,
++#endif
+ 
+     AUDIO_DEVICE_IN_ALL     = (AUDIO_DEVICE_IN_COMMUNICATION |
+                                AUDIO_DEVICE_IN_AMBIENT |
+diff -Bur '--exclude=.git' a/system/core/include/utils/Flattenable.h b/system/core/include/utils/Flattenable.h
+--- a/system/core/include/utils/Flattenable.h	2015-01-08 12:13:15.188314529 +0100
++++ b/system/core/include/utils/Flattenable.h	2015-01-06 10:46:27.806570606 +0100
+@@ -79,21 +79,35 @@
+  * Flattenable objects must implement this protocol.
+  */
+ 
++#ifndef STE_HARDWARE
+ template <typename T>
++#endif
+ class Flattenable {
+ public:
+     // size in bytes of the flattened object
++#ifdef STE_HARDWARE
++    virtual size_t getFlattenedSize() const = 0;
++#else
+     inline size_t getFlattenedSize() const;
++#endif
+ 
+     // number of file descriptors to flatten
++#ifdef STE_HARDWARE
++    virtual size_t getFdCount() const = 0;
++#else
+     inline size_t getFdCount() const;
++#endif
+ 
+     // flattens the object into buffer.
+     // size should be at least of getFlattenedSize()
+     // file descriptors are written in the fds[] array but ownership is
+     // not transfered (ie: they must be dupped by the caller of
+     // flatten() if needed).
++#ifdef STE_HARDWARE
++    virtual status_t flatten(void*& buffer, size_t& size, int*& fds, size_t& count) const = 0;
++#else
+     inline status_t flatten(void*& buffer, size_t& size, int*& fds, size_t& count) const;
++#endif
+ 
+     // unflattens the object from buffer.
+     // size should be equal to the value of getFlattenedSize() when the
+@@ -102,6 +116,13 @@
+     // don't need to be dupped(). ie: the caller of unflatten doesn't
+     // keep ownership. If a fd is not retained by unflatten() it must be
+     // explicitly closed.
++#ifdef STE_HARDWARE
++    virtual status_t unflatten(void const*& buffer, size_t& size, int const*& fds, size_t& count) = 0;
++
++protected:
++    virtual ~Flattenable() = 0;
++};
++#else
+     inline status_t unflatten(void const*& buffer, size_t& size, int const*& fds, size_t& count);
+ };
+ 
+@@ -123,6 +144,7 @@
+         void const*& buffer, size_t& size, int const*& fds, size_t& count) {
+     return static_cast<T*>(this)->T::unflatten(buffer, size, fds, count);
+ }
++#endif
+ 
+ /*
+  * LightFlattenable is a protocol allowing object to serialize themselves out
+diff -Bur '--exclude=.git' a/system/core/libutils/Android.mk b/system/core/libutils/Android.mk
+--- a/system/core/libutils/Android.mk	2015-01-08 12:13:15.228314527 +0100
++++ b/system/core/libutils/Android.mk	2015-01-06 10:46:27.806570606 +0100
+@@ -44,6 +44,12 @@
+ 	VectorImpl.cpp \
+ 	misc.cpp
+ 
++
++ifeq ($(BOARD_USES_STE_HARDWARE),true)
++	commonSources += Flattenable.cpp
++endif
++
++
+ host_commonCflags := -DLIBUTILS_NATIVE=1 $(TOOL_CFLAGS) -Werror
+ 
+ ifeq ($(HOST_OS),windows)
+diff --git a/libutils/Flattenable.cpp b/libutils/Flattenable.cpp
+new file mode 100644
+index 0000000..1f2ffaa
+--- /dev/null
++++ b/system/core/libutils/Flattenable.cpp
+@@ -0,0 +1,24 @@
++/*
++ * Copyright (C) 2006 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include <utils/Flattenable.h>
++
++namespace android {
++
++Flattenable::~Flattenable() {
++}
++
++}; // namespace android

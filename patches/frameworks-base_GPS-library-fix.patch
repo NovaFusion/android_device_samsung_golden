@@ -1,0 +1,17 @@
+diff -Bur '--exclude=.git' a/frameworks/base/services/core/java/com/android/server/location/GpsLocationProvider.java b/frameworks/base/services/core/java/com/android/server/location/GpsLocationProvider.java
+--- a/frameworks/base/services/core/java/com/android/server/location/GpsLocationProvider.java	2015-01-08 12:02:14.480337749 +0100
++++ b/frameworks/base/services/core/java/com/android/server/location/GpsLocationProvider.java	2015-01-08 11:56:04.584350749 +0100
+@@ -956,11 +956,11 @@
+                 Log.e(TAG, "unable to parse SUPL_PORT: " + portString);
+             }
+         }
+-        if (mSuplServerHost != null
++       /* if (mSuplServerHost != null
+                 && mSuplServerPort > TCP_MIN_PORT
+                 && mSuplServerPort <= TCP_MAX_PORT) {
+             native_set_agps_server(AGPS_TYPE_SUPL, mSuplServerHost, mSuplServerPort);
+-        }
++        }*/
+     }
+ 
+     /**
