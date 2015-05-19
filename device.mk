@@ -57,7 +57,16 @@ PRODUCT_COPY_FILES += \
     device/samsung/golden/ramdisk/init.samsunggolden.rc:root/init.samsunggolden.rc \
     device/samsung/golden/ramdisk/init.samsunggolden.usb.rc:root/init.samsunggolden.usb.rc \
     device/samsung/golden/ramdisk/ueventd.samsunggolden.rc:root/ueventd.samsunggolden.rc \
-    device/samsung/golden/ramdisk/lpm.rc:root/lpm.rc
+    device/samsung/golden/ramdisk/lpm.rc:root/lpm.rc \
+    device/samsung/golden/ramdisk/sbin/charger:root/sbin/charger \
+    device/samsung/golden/ramdisk/res/images/charger/battery_0.png:root/res/images/charger/battery_0.png \
+    device/samsung/golden/ramdisk/res/images/charger/battery_1.png:root/res/images/charger/battery_1.png \
+    device/samsung/golden/ramdisk/res/images/charger/battery_2.png:root/res/images/charger/battery_2.png \
+    device/samsung/golden/ramdisk/res/images/charger/battery_3.png:root/res/images/charger/battery_3.png \
+    device/samsung/golden/ramdisk/res/images/charger/battery_4.png:root/res/images/charger/battery_4.png \
+    device/samsung/golden/ramdisk/res/images/charger/battery_5.png:root/res/images/charger/battery_5.png \
+    device/samsung/golden/ramdisk/res/images/charger/battery_charge.png:root/res/images/charger/battery_charge.png \
+    device/samsung/golden/ramdisk/res/images/charger/battery_fail.png:root/res/images/charger/battery_fail.png
 
 # Permissions
 PRODUCT_COPY_FILES += \

@@ -536,3 +536,4 @@ service iprenew_bt-pan /system/bin/dhcpcd -n
     class main
     disabled
     oneshot
+
